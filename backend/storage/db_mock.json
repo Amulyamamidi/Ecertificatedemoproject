@@ -43,28 +43,6 @@
       "is_verified": true,
       "otp_code": null,
       "created_at": "2026-07-25T11:00:00.000Z"
-    },
-    {
-      "id": "inst-uuid-oxford-2026",
-      "name": "Oxford University",
-      "wallet_address": "0x90f79bf6eb2c4f870365e785982e1f101e93b906",
-      "email": "oxford@domain.com",
-      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
-      "status": "approved",
-      "is_verified": true,
-      "otp_code": null,
-      "created_at": "2026-07-22T16:43:57.627Z"
-    },
-    {
-      "id": "inst-uuid-pending-2026",
-      "name": "Pending State University",
-      "wallet_address": "0x3c44cdde86a900fa2b585dd299e03d12fa4293bd",
-      "email": "pending_uni@domain.com",
-      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262self7rfMx/HI/jEex7dNpU2O9Zp5QBVyC",
-      "status": "pending",
-      "is_verified": false,
-      "otp_code": null,
-      "created_at": "2026-07-22T16:43:57.627Z"
     }
   ],
   "students": [
@@ -87,16 +65,6 @@
       "is_verified": true,
       "otp_code": null,
       "created_at": "2026-07-22T16:43:57.627Z"
-    },
-    {
-      "id": "d35e0714-1fb8-48dc-aaaf-36df8cd2a297",
-      "registration_number": "TESTREG123",
-      "name": "OTP Tester",
-      "email": "otp_test_1785070103831@example.com",
-      "password_hash": "hashedpass",
-      "is_verified": true,
-      "otp_code": null,
-      "created_at": "2026-07-26T12:48:24.039Z"
     }
   ],
   "certificates": [],
