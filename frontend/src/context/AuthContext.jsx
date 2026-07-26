@@ -7,6 +7,14 @@ let normalizedUrl = rawApiUrl;
 if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
   normalizedUrl = `https://${normalizedUrl}`;
 }
+try {
+  const parsed = new URL(normalizedUrl);
+  if (!parsed.hostname.includes(".") && parsed.hostname !== "localhost") {
+    parsed.hostname = `${parsed.hostname}.onrender.com`;
+    normalizedUrl = parsed.toString();
+  }
+} catch (e) {}
+
 normalizedUrl = normalizedUrl.replace(/\/+$/, "");
 if (!normalizedUrl.endsWith("/v1")) {
   normalizedUrl = `${normalizedUrl}/v1`;
