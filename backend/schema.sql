@@ -49,12 +49,3 @@ CREATE TABLE IF NOT EXISTS certificate_requests (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Seed Default Real Approved Colleges (JNTUGV & Affiliated Institutes)
-INSERT INTO institutions (name, wallet_address, email, password_hash, status, is_verified)
-VALUES 
-  ('JNTUGV University College of Engineering Vizianagaram', '0x5b38da6a701c568545dcfcb03fcb875f56beddc4', 'jntugv_main@domain.com', '$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq', 'approved', true),
-  ('MVGR College of Engineering (Autonomous)', '0xd0e2367b49cd8536C47b7CE7C475FdE5Dd89DEA0', 'mvgr@domain.com', '$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq', 'approved', true),
-  ('GMR Institute of Technology (GMRIT)', '0x70997970c51812dc3a010c7d01b50e0d17dc79c8', 'gmrit@domain.com', '$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq', 'approved', true),
-  ('Lendi Institute of Engineering & Technology', '0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc', 'lendi@domain.com', '$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq', 'approved', true)
-ON CONFLICT (email) DO NOTHING;
