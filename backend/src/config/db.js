@@ -1,6 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const dns = require("dns");
 const { Pool } = require("pg");
+
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 const MOCK_DB_PATH = path.join(__dirname, "../../storage/db_mock.json");
 
