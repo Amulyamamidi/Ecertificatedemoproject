@@ -1,8 +1,12 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-// Create SMTP Transporter
+let cachedTransporter = null;
+
+// Create Pooled SMTP Transporter
 const createTransporter = () => {
+  if (cachedTransporter) return cachedTransporter;
+
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
   const rawPass = process.env.SMTP_PASS || "ofjzhlperzxctkpn";
@@ -12,13 +16,20 @@ const createTransporter = () => {
     return null;
   }
 
-  return nodemailer.createTransport({
+  cachedTransporter = nodemailer.createTransport({
     service: "gmail",
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5,
     auth: {
       user,
       pass
     }
   });
+
+  return cachedTransporter;
 };
 
 /**
