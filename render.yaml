@@ -29,7 +29,7 @@ services:
       - key: SMTP_USER
         value: saikumaredakula@gmail.com
       - key: SMTP_PASS
-        value: egitfqhwvivtaxxv
+        value: ofjzhlperzxctkpn
 
   # 2. Vite React Frontend Static Site
   - type: web
