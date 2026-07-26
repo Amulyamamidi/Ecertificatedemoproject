@@ -7,7 +7,12 @@ if (dns.setDefaultResultOrder) {
 
 let pool = null;
 try {
-  const dbUrl = process.env.DATABASE_URL || "";
+  let dbUrl = process.env.DATABASE_URL || "";
+  // Auto-switch Supabase direct port 5432 to Connection Pooler port 6543 for IPv4 compatibility on Render/cloud hosts
+  if (dbUrl.includes("supabase.co:5432")) {
+    dbUrl = dbUrl.replace("supabase.co:5432", "supabase.co:6543");
+  }
+
   const needsSSL = dbUrl.includes("supabase.co") || dbUrl.includes("render.com") || dbUrl.includes("neon.tech") || dbUrl.includes("sslmode=require") || process.env.NODE_ENV === "production";
   
   pool = new Pool({
