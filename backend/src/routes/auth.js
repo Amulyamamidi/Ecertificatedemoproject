@@ -32,14 +32,15 @@ router.post("/institution/register", async (req, res) => {
           [name, walletAddress, passwordHash, otp, email]
         );
 
-        emailService.sendOtpEmail(email, otp, name).catch(err => {
-          console.error("[Auth Route] Resent verification email error:", err);
-        });
+        const sent = await emailService.sendOtpEmail(email, otp, name);
 
         return res.status(200).json({
-          message: "Account pending verification. A new verification OTP has been sent to your email.",
+          message: sent
+            ? "Account pending verification. A new verification OTP has been sent to your email."
+            : `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
           email,
-          role: "institution"
+          role: "institution",
+          demoOtp: sent ? undefined : otp
         });
       }
       return res.status(400).json({ error: "Institution email already registered." });
@@ -55,15 +56,15 @@ router.post("/institution/register", async (req, res) => {
       [name, walletAddress, email, passwordHash, "pending", false, otp]
     );
 
-    // Send OTP to email asynchronously
-    emailService.sendOtpEmail(email, otp, name).catch(err => {
-      console.error("[Auth Route] Background registration email send error:", err);
-    });
+    const sent = await emailService.sendOtpEmail(email, otp, name);
 
     res.status(201).json({
-      message: "Institution registration successful. Verification OTP sent to your email.",
+      message: sent
+        ? "Institution registration successful. Verification OTP sent to your email."
+        : `Institution registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
       email,
-      role: "institution"
+      role: "institution",
+      demoOtp: sent ? undefined : otp
     });
   } catch (error) {
     console.error("[Auth Route] Institution register error:", error);
@@ -173,14 +174,15 @@ router.post("/student/register", async (req, res) => {
           [name, registrationNumber, passwordHash, otp, email]
         );
 
-        emailService.sendOtpEmail(email, otp, name).catch(err => {
-          console.error("[Auth Route] Resent verification email error:", err);
-        });
+        const sent = await emailService.sendOtpEmail(email, otp, name);
 
         return res.status(200).json({
-          message: "Account pending verification. A new verification OTP has been sent to your email.",
+          message: sent
+            ? "Account pending verification. A new verification OTP has been sent to your email."
+            : `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
           email,
-          role: "student"
+          role: "student",
+          demoOtp: sent ? undefined : otp
         });
       }
       return res.status(400).json({ error: "Student email already registered." });
@@ -195,15 +197,15 @@ router.post("/student/register", async (req, res) => {
       [registrationNumber, name, email, passwordHash, false, otp]
     );
 
-    // Send OTP to email asynchronously
-    emailService.sendOtpEmail(email, otp, name).catch(err => {
-      console.error("[Auth Route] Background registration email send error:", err);
-    });
+    const sent = await emailService.sendOtpEmail(email, otp, name);
 
     res.status(201).json({
-      message: "Student registration successful. Verification OTP sent to your email.",
+      message: sent
+        ? "Student registration successful. Verification OTP sent to your email."
+        : `Student registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
       email,
-      role: "student"
+      role: "student",
+      demoOtp: sent ? undefined : otp
     });
   } catch (error) {
     console.error("[Auth Route] Student register error:", error);
@@ -235,15 +237,16 @@ router.post("/student/login", async (req, res) => {
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.query("UPDATE students SET otp_code = $1 WHERE email = $2", [newOtp, student.email]);
 
-      emailService.sendOtpEmail(student.email, newOtp, student.name).catch(err => {
-        console.error("[Auth Route] Background login verification email send error:", err);
-      });
+      const sent = await emailService.sendOtpEmail(student.email, newOtp, student.name);
 
       return res.status(403).json({
-        error: "Email verification required. A new verification code has been sent to your email.",
+        error: sent
+          ? "Email verification required. A new verification code has been sent to your email."
+          : `Email verification required. Code sent to ${student.email} (Demo Code: ${newOtp}).`,
         email: student.email,
         role: "student",
-        needsVerification: true
+        needsVerification: true,
+        demoOtp: sent ? undefined : newOtp
       });
     }
 
@@ -379,15 +382,15 @@ router.post("/forgot-password/request-otp", async (req, res) => {
 
     await db.query(`UPDATE ${tableName} SET otp_code = $1 WHERE email = $2`, [otp, email]);
 
-    // Send OTP email
-    emailService.sendOtpEmail(email, otp, user.name).catch(err => {
-      console.error("[Auth Route] Background forgot password email send error:", err);
-    });
+    const sent = await emailService.sendOtpEmail(email, otp, user.name);
 
     res.json({
-      message: "Password reset OTP sent to your email address.",
+      message: sent
+        ? "Password reset OTP sent to your email address."
+        : `Password reset OTP sent to ${email} (Demo Code: ${otp}).`,
       email,
-      role
+      role,
+      demoOtp: sent ? undefined : otp
     });
   } catch (error) {
     console.error("[Auth Route] Request forgot password OTP error:", error);
