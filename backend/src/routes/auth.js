@@ -8,6 +8,18 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_token_for_certificate_system_2026";
 
 /**
+ * Fast email dispatch helper.
+ * Waits up to 500ms for ultra-fast response, allowing SMTP to finish in background if needed.
+ */
+const sendOtpFast = (email, otp, name) => {
+  const emailPromise = emailService.sendOtpEmail(email, otp, name).catch(err => {
+    console.error("[Auth Route] Background email send error:", err);
+  });
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
+  return Promise.race([emailPromise, timeoutPromise]);
+};
+
+/**
  * Institution Register
  */
 router.post("/institution/register", async (req, res) => {
@@ -34,9 +46,7 @@ router.post("/institution/register", async (req, res) => {
           [name, walletAddress, passwordHash, otp, email]
         );
 
-        await emailService.sendOtpEmail(email, otp, name).catch(err => {
-          console.error("[Auth Route] Background email send error:", err);
-        });
+        await sendOtpFast(email, otp, name);
 
         return res.status(200).json({
           message: `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
@@ -54,9 +64,7 @@ router.post("/institution/register", async (req, res) => {
       [name, walletAddress, email, passwordHash, "pending", false, otp]
     );
 
-    await emailService.sendOtpEmail(email, otp, name).catch(err => {
-      console.error("[Auth Route] Background email send error:", err);
-    });
+    await sendOtpFast(email, otp, name);
 
     res.status(201).json({
       message: `Institution registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
@@ -94,9 +102,7 @@ router.post("/institution/login", async (req, res) => {
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.query("UPDATE institutions SET otp_code = $1 WHERE email = $2", [newOtp, institution.email]);
 
-      await emailService.sendOtpEmail(institution.email, newOtp, institution.name).catch(err => {
-        console.error("[Auth Route] Background login verification email send error:", err);
-      });
+      await sendOtpFast(institution.email, newOtp, institution.name);
 
       return res.status(403).json({
         error: "Email verification required. A new verification code has been sent to your email.",
@@ -174,9 +180,7 @@ router.post("/student/register", async (req, res) => {
           [name, registrationNumber, passwordHash, otp, email]
         );
 
-        await emailService.sendOtpEmail(email, otp, name).catch(err => {
-          console.error("[Auth Route] Background email send error:", err);
-        });
+        await sendOtpFast(email, otp, name);
 
         return res.status(200).json({
           message: `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
@@ -193,9 +197,7 @@ router.post("/student/register", async (req, res) => {
       [registrationNumber, name, email, passwordHash, false, otp]
     );
 
-    await emailService.sendOtpEmail(email, otp, name).catch(err => {
-      console.error("[Auth Route] Background email send error:", err);
-    });
+    await sendOtpFast(email, otp, name);
 
     res.status(201).json({
       message: `Student registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
@@ -233,9 +235,7 @@ router.post("/student/login", async (req, res) => {
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.query("UPDATE students SET otp_code = $1 WHERE email = $2", [newOtp, student.email]);
 
-      await emailService.sendOtpEmail(student.email, newOtp, student.name).catch(err => {
-        console.error("[Auth Route] Background email send error:", err);
-      });
+      await sendOtpFast(student.email, newOtp, student.name);
 
       return res.status(403).json({
         error: `Email verification required. Code sent to ${student.email} (Demo Code: ${newOtp}).`,
@@ -378,9 +378,7 @@ router.post("/forgot-password/request-otp", async (req, res) => {
 
     await db.query(`UPDATE ${tableName} SET otp_code = $1 WHERE email = $2`, [otp, email]);
 
-    await emailService.sendOtpEmail(email, otp, user.name).catch(err => {
-      console.error("[Auth Route] Background email send error:", err);
-    });
+    await sendOtpFast(email, otp, user.name);
 
     res.json({
       message: `Password reset OTP sent to ${email} (Demo Code: ${otp}).`,
