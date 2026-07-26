@@ -11,12 +11,11 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // OTP Verification States (in case they login with unverified email)  // OTP Fields
+  // OTP Verification States (in case they login with unverified email)
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otp, setOtp] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationRole, setVerificationRole] = useState("");
-  const [receivedDemoOtp, setReceivedDemoOtp] = useState("");
 
   // Forgot Password States
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -54,9 +53,6 @@ export default function LoginPage() {
       if (err.needsVerification) {
         setVerificationEmail(err.email || email);
         setVerificationRole(err.role || role);
-        if (err.demoOtp) {
-          setReceivedDemoOtp(err.demoOtp);
-        }
         setShowOtpScreen(true);
         setSuccess("Email verification required.");
       } else {
@@ -132,10 +128,7 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to send reset OTP.");
 
-      if (data.demoOtp) {
-        setReceivedDemoOtp(data.demoOtp);
-      }
-      setSuccess("Verification OTP has been sent.");
+      setSuccess("Verification OTP has been sent to your email.");
       setForgotStep(2);
     } catch (err) {
       setError(err.message);
@@ -294,21 +287,6 @@ export default function LoginPage() {
                     A 6-digit verification code has been sent to <span className="font-semibold text-slate-900">{forgotEmail}</span>.
                   </p>
 
-                  {receivedDemoOtp && (
-                    <div className="p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-center space-y-2 mb-4 animate-fade-in shadow-sm">
-                      <p className="text-xs text-blue-700 font-medium">
-                        🔑 Verification Code: <span className="font-bold text-blue-900 text-sm tracking-widest bg-blue-100/70 px-2 py-0.5 rounded-lg border border-blue-200">{receivedDemoOtp}</span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setForgotOtp(receivedDemoOtp)}
-                        className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow transition-all duration-150 flex items-center justify-center gap-1.5"
-                      >
-                        <span>✨ Auto-Fill Code</span>
-                      </button>
-                    </div>
-                  )}
-
                   <div>
                     <label className="block text-sm font-semibold text-slate-700">Verification Code (OTP)</label>
                     <div className="mt-1 relative">
@@ -414,20 +392,6 @@ export default function LoginPage() {
               <p className="text-sm text-slate-500">
                 We've sent a 6-digit verification code to <span className="font-semibold text-slate-800">{verificationEmail}</span>.
               </p>
-              {receivedDemoOtp && (
-                <div className="p-3.5 bg-blue-50 border border-blue-200/80 rounded-2xl text-center space-y-2 animate-fade-in shadow-sm">
-                  <p className="text-xs text-blue-700 font-medium">
-                    🔑 Verification Code: <span className="font-bold text-blue-900 text-sm tracking-widest bg-blue-100/70 px-2 py-0.5 rounded-lg border border-blue-200">{receivedDemoOtp}</span>
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setOtp(receivedDemoOtp)}
-                    className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow transition-all duration-150 flex items-center justify-center gap-1.5"
-                  >
-                    <span>✨ Auto-Fill OTP Code</span>
-                  </button>
-                </div>
-              )}
 
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-2">
                 <div>

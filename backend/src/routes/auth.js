@@ -39,10 +39,9 @@ router.post("/institution/register", async (req, res) => {
         await emailService.sendOtpEmail(email, otp, name);
 
         return res.status(200).json({
-          message: `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
+          message: `Account pending verification. A 6-digit verification code has been sent to ${email}.`,
           email,
-          role: "institution",
-          demoOtp: otp
+          role: "institution"
         });
       }
       return res.status(400).json({ error: "Institution email already registered." });
@@ -57,10 +56,9 @@ router.post("/institution/register", async (req, res) => {
     await emailService.sendOtpEmail(email, otp, name);
 
     res.status(201).json({
-      message: `Institution registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
+      message: `Institution registration successful. A 6-digit verification code has been sent to ${email}.`,
       email,
-      role: "institution",
-      demoOtp: otp
+      role: "institution"
     });
   } catch (error) {
     console.error("[Auth Route] Institution register error:", error);
@@ -177,10 +175,9 @@ router.post("/student/register", async (req, res) => {
         await emailService.sendOtpEmail(email, otp, name);
 
         return res.status(200).json({
-          message: `Account pending verification. Verification code sent to ${email} (Demo Code: ${otp}).`,
+          message: `Account pending verification. A 6-digit verification code has been sent to ${email}.`,
           email,
-          role: "student",
-          demoOtp: otp
+          role: "student"
         });
       }
       return res.status(400).json({ error: "Student email already registered." });
@@ -194,10 +191,9 @@ router.post("/student/register", async (req, res) => {
     await emailService.sendOtpEmail(email, otp, name);
 
     res.status(201).json({
-      message: `Student registration successful. Verification code sent to ${email} (Demo Code: ${otp}).`,
+      message: `Student registration successful. A 6-digit verification code has been sent to ${email}.`,
       email,
-      role: "student",
-      demoOtp: otp
+      role: "student"
     });
   } catch (error) {
     console.error("[Auth Route] Student register error:", error);
@@ -234,11 +230,10 @@ router.post("/student/login", async (req, res) => {
       await emailService.sendOtpEmail(student.email, newOtp, student.name);
 
       return res.status(403).json({
-        error: `Email verification required. Code sent to ${student.email} (Demo Code: ${newOtp}).`,
+        error: `Email verification required. A new verification code has been sent to ${student.email}.`,
         email: student.email,
         role: "student",
-        needsVerification: true,
-        demoOtp: newOtp
+        needsVerification: true
       });
     }
 
@@ -377,10 +372,9 @@ router.post("/forgot-password/request-otp", async (req, res) => {
     await emailService.sendOtpEmail(email, otp, user.name);
 
     res.json({
-      message: `Password reset OTP sent to ${email} (Demo Code: ${otp}).`,
+      message: `Password reset verification code sent to ${email}.`,
       email,
-      role,
-      demoOtp: otp
+      role
     });
   } catch (error) {
     console.error("[Auth Route] Request forgot password OTP error:", error);

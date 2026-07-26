@@ -75,7 +75,6 @@ export const AuthProvider = ({ children }) => {
       err.needsVerification = data.needsVerification;
       err.email = data.email;
       err.role = data.role;
-      err.demoOtp = data.demoOtp;
       throw err;
     }
 

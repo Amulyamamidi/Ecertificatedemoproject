@@ -27,7 +27,6 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationRole, setVerificationRole] = useState("");
-  const [receivedDemoOtp, setReceivedDemoOtp] = useState("");
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -58,15 +57,12 @@ export default function RegisterPage() {
         ? { name, registrationNumber, email, password }
         : { name: instName, walletAddress, email, password };
 
-      const res = await register(payload, role);
+      await register(payload, role);
 
       setVerificationEmail(email);
       setVerificationRole(role);
-      if (res && res.demoOtp) {
-        setReceivedDemoOtp(res.demoOtp);
-      }
       setShowOtpScreen(true);
-      setSuccess("Registration successful! A verification code has been sent.");
+      setSuccess("Registration successful! A 6-digit verification code has been sent to your email.");
     } catch (err) {
       setError(err.message || "Registration failed.");
     } finally {
@@ -148,20 +144,6 @@ export default function RegisterPage() {
               <p className="text-sm text-slate-500">
                 We've sent a 6-digit verification code to <span className="font-semibold text-slate-800">{verificationEmail}</span>.
               </p>
-              {receivedDemoOtp && (
-                <div className="p-3.5 bg-blue-50 border border-blue-200/80 rounded-2xl text-center space-y-2 animate-fade-in shadow-sm">
-                  <p className="text-xs text-blue-700 font-medium">
-                    🔑 Verification Code: <span className="font-bold text-blue-900 text-sm tracking-widest bg-blue-100/70 px-2 py-0.5 rounded-lg border border-blue-200">{receivedDemoOtp}</span>
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setOtp(receivedDemoOtp)}
-                    className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow transition-all duration-150 flex items-center justify-center gap-1.5"
-                  >
-                    <span>✨ Auto-Fill OTP Code</span>
-                  </button>
-                </div>
-              )}
 
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-2">
                 <div>
