@@ -1,0 +1,48 @@
+# Render Infrastructure Blueprint Configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  # 1. Express Backend Web Service
+  - type: web
+    name: certificate-verification-backend
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: USE_MOCK_SERVICES
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALCHEMY_AMOY_RPC_URL
+        value: https://polygon-amoy.g.alchemy.com/v2/demo
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+
+  # 2. Vite React Frontend Static Site
+  - type: web
+    name: certificate-verification-frontend
+    runtime: static
+    region: singapore
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: certificate-verification-backend
+          property: host
+          path: /v1

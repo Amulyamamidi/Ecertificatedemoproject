@@ -1,0 +1,24 @@
+{
+  "name": "academic-certificate-verification-system",
+  "version": "1.0.0",
+  "description": "Zero-Cost Academic Certificate Verification System using Polygon Testnet, Supabase, and IPFS",
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "start:backend": "npm start --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "start:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "compile:contracts": "npm run compile --prefix contracts",
+    "deploy:contracts": "npm run deploy:local --prefix contracts"
+  },
+  "keywords": [
+    "blockchain",
+    "solidity",
+    "ethereum",
+    "react",
+    "express",
+    "supabase",
+    "ipfs"
+  ]
+}

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.venv/
+.venv-1/
+.venv-2/
+
+# Build outputs
+dist/
+build/
+
+# Environment configuration files with secrets (NEVER commit to GitHub)
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env
+*.env
+
+# Ignore uploaded storage data & logs
+storage/ipfs/*.pdf
+storage/student_photos/*
+!storage/student_photos/.gitkeep
+*.log
+.DS_Store

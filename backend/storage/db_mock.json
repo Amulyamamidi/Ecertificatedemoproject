@@ -1,0 +1,94 @@
+{
+  "institutions": [
+    {
+      "id": "inst-uuid-jntugv-main-2026",
+      "name": "JNTUGV University College of Engineering Vizianagaram",
+      "wallet_address": "0x5b38da6a701c568545dcfcb03fcb875f56beddc4",
+      "email": "jntugv_main@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
+      "status": "approved",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-25T11:00:00.000Z"
+    },
+    {
+      "id": "inst-uuid-mvgr-2026",
+      "name": "MVGR College of Engineering (Autonomous)",
+      "wallet_address": "0xd0e2367b49cd8536C47b7CE7C475FdE5Dd89DEA0",
+      "email": "mvgr@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
+      "status": "approved",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-25T11:00:00.000Z"
+    },
+    {
+      "id": "inst-uuid-gmrit-2026",
+      "name": "GMR Institute of Technology (GMRIT)",
+      "wallet_address": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "email": "gmrit@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
+      "status": "approved",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-25T11:00:00.000Z"
+    },
+    {
+      "id": "inst-uuid-lendi-2026",
+      "name": "Lendi Institute of Engineering & Technology",
+      "wallet_address": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+      "email": "lendi@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
+      "status": "approved",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-25T11:00:00.000Z"
+    },
+    {
+      "id": "inst-uuid-oxford-2026",
+      "name": "Oxford University",
+      "wallet_address": "0x90f79bf6eb2c4f870365e785982e1f101e93b906",
+      "email": "oxford@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seAYoB5oP7O7A0kgHgGI801f8Q6ZKFUaq",
+      "status": "approved",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-22T16:43:57.627Z"
+    },
+    {
+      "id": "inst-uuid-pending-2026",
+      "name": "Pending State University",
+      "wallet_address": "0x3c44cdde86a900fa2b585dd299e03d12fa4293bd",
+      "email": "pending_uni@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262self7rfMx/HI/jEex7dNpU2O9Zp5QBVyC",
+      "status": "pending",
+      "is_verified": false,
+      "otp_code": null,
+      "created_at": "2026-07-22T16:43:57.627Z"
+    }
+  ],
+  "students": [
+    {
+      "id": "student-uuid-jane-doe-2026",
+      "registration_number": "REG2026001",
+      "name": "Jane Doe",
+      "email": "student@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seG2EP4QcBaDN.oRM0SqU55s836WYE3tO",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-22T16:43:57.627Z"
+    },
+    {
+      "id": "student-uuid-saiku-kumar-2026",
+      "registration_number": "REG2026042",
+      "name": "Saiku Kumar",
+      "email": "saiku@domain.com",
+      "password_hash": "$2a$10$jmYTXon7Rluvj5ba.262seG2EP4QcBaDN.oRM0SqU55s836WYE3tO",
+      "is_verified": true,
+      "otp_code": null,
+      "created_at": "2026-07-22T16:43:57.627Z"
+    }
+  ],
+  "certificates": [],
+  "certificate_requests": []
+}
