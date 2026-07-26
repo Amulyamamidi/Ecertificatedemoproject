@@ -2,7 +2,10 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/v1";
+const rawApiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/v1";
+export const API_BASE_URL = (rawApiUrl.startsWith("http://") || rawApiUrl.startsWith("https://"))
+  ? rawApiUrl
+  : `https://${rawApiUrl}`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -45,7 +48,13 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
+    let data = {};
+    const text = await response.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      data = { error: `Server connection error (${response.status}). Please try again.` };
+    }
 
     if (!response.ok) {
       const err = new Error(data.error || "Login failed");
@@ -79,7 +88,13 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify(userData)
     });
 
-    const data = await response.json();
+    let data = {};
+    const text = await response.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      data = { error: `Server connection error (${response.status}). Please try again.` };
+    }
 
     if (!response.ok) {
       throw new Error(data.error || "Registration failed");
