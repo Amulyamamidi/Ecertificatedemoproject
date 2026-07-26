@@ -64,9 +64,7 @@ blockchain/
 
 ---
 
-## 4. Quickstart: Offline Mock Mode (Recommended for Instant Demos)
-
-To run the application immediately without signing up for external testnet faucets or cloud services, a built-in **Offline Mock Mode** is active by default.
+## 4. Quickstart Guide
 
 ### Step 1: Install Dependencies
 Open your shell at the project root directory and run:
@@ -81,10 +79,15 @@ npm install --prefix backend
 npm install --prefix frontend
 ```
 
-### Step 2: Seed Mock Data
-Pre-populate the local database and blockchain simulator with JNTUGV constituent & associate college profiles:
-```powershell
-npm run seed --prefix backend
+### Step 2: Configure Environment Variables
+Copy `.env.example` to `.env` inside `/backend` and update your PostgreSQL/Supabase database URL, blockchain RPC details, contract address, and Pinata IPFS keys:
+```env
+PORT=5000
+JWT_SECRET=super_secret_jwt_token_for_certificate_system_2026
+DATABASE_URL=postgresql://postgres:password@db.your-supabase-project.supabase.co:5432/postgres
+ADMIN_PRIVATE_KEY=your_private_key
+PINATA_API_KEY=your_pinata_api_key
+PINATA_SECRET_KEY=your_pinata_secret_key
 ```
 
 ### Step 3: Run the Services
@@ -103,50 +106,27 @@ Once running, access the web client at: `http://localhost:3000`
 
 ---
 
-## 5. Seeding & Login Credentials (Mock Mode)
-
-Use the following pre-registered credentials to demonstrate the different portal views:
+## 5. System Login Credentials
 
 * **System Administrator (JNTUGV Admin):**
   * **Email:** `admin@system.com`
   * **Password:** `admin123`
-* **JNTUGV Main Campus:**
-  * **Email:** `jntugv_main@domain.com`
-  * **Password:** `oxford123`
-* **MVGR College of Engineering (Affiliated Associate College):**
-  * **Email:** `mvgr@domain.com`
-  * **Password:** `oxford123`
-* **GMR Institute of Technology (Affiliated Associate College):**
-  * **Email:** `gmrit@domain.com`
-  * **Password:** `oxford123`
-* **Pending Institution (Pending State University):**
-  * **Email:** `pending_uni@domain.com`
-  * **Password:** `pending123` *(Requires admin approval before logging in)*
-* **Student (Saiku Kumar):**
-  * **Email:** `saiku@domain.com`
-  * **Password:** `student123`
+* **Institutions (Colleges) & Students:**
+  * Can register directly on the portal. Institutional accounts will receive an email OTP and require Admin approval before issuance capabilities are activated.
 
 ---
 
-## 6. Deploying to Live Testnet (Ethereum Sepolia / Polygon Amoy)
+## 6. Smart Contract Deployment (Ethereum Sepolia / Polygon Amoy)
 
-To connect the application to the live blockchain testnet, Supabase cloud database, and Pinata IPFS gateway:
+To deploy the smart contract on-chain:
 
-1. **Claim Free Sepolia ETH:** Visit the [Google Cloud Web3 Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) and claim 0.05 Sepolia ETH to your admin wallet (`0xE652eDde655aed8cCF6699Cdd338d0055F160DC9`).
+1. **Claim Free Sepolia ETH:** Visit the [Google Cloud Web3 Sepolia Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia).
 2. **Deploy Smart Contract:**
    ```powershell
    cd contracts
    npx hardhat run scripts/deploy.js --network sepolia
    ```
-3. **Configure Backend `.env`:**
-   Open `/backend/.env` and update:
-   ```env
-   USE_MOCK_SERVICES=false
-   ALCHEMY_AMOY_RPC_URL=https://ethereum-sepolia.publicnode.com
-   CONTRACT_ADDRESS=0xYourDeployedContractAddress
-   ADMIN_PRIVATE_KEY=your_private_key
-   ```
-4. **Restart Backend:** Restart `npm run dev` in `/backend`.
+3. Update `CONTRACT_ADDRESS` and `ADMIN_PRIVATE_KEY` in `backend/.env`.
 
 ---
 

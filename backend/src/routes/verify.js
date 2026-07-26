@@ -146,23 +146,4 @@ router.post("/upload", upload.single("certificate"), async (req, res) => {
   }
 });
 
-/**
- * Mock IPFS Gateway Downloader
- * Serves local PDF files in mock mode
- */
-router.get("/ipfs/:cid", (req, res) => {
-  const { cid } = req.params;
-  const filePath = path.join(__dirname, "../../storage/ipfs", `${cid}.pdf`);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("File not found on mock IPFS.");
-  }
-
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `inline; filename="certificate_${cid}.pdf"`);
-  
-  const stream = fs.createReadStream(filePath);
-  stream.pipe(res);
-});
-
 module.exports = router;

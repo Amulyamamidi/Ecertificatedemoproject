@@ -1,37 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-
-// Mock IPFS storage directory
-const MOCK_IPFS_DIR = path.join(__dirname, "../../storage/ipfs");
-
 /**
- * Pins a file buffer (PDF) to IPFS using Pinata API, or mock local storage.
+ * Pins a file buffer (PDF) to IPFS using Pinata API.
  * @param {Buffer} buffer - File buffer to pin
  * @param {string} fileName - Name of the file
  * @returns {Promise<string>} IPFS CID
  */
 async function pinFileToIPFS(buffer, fileName) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    console.log("[IPFS Service] Operating in mock mode. Saving certificate to local disk.");
-    if (!fs.existsSync(MOCK_IPFS_DIR)) {
-      fs.mkdirSync(MOCK_IPFS_DIR, { recursive: true });
-    }
-
-    // Generate a simulated CID
-    const mockHash = require("crypto").createHash("md5").update(buffer).digest("hex");
-    const mockCid = `QmMockIPFS${mockHash.substring(0, 32)}`;
-    
-    // Save to local storage
-    const filePath = path.join(MOCK_IPFS_DIR, `${mockCid}.pdf`);
-    fs.writeFileSync(filePath, buffer);
-    
-    console.log(`[IPFS Service] Mock file saved: ${filePath}`);
-    return mockCid;
-  }
-
-  // Real Pinata API pinning
   const apiKey = process.env.PINATA_API_KEY;
   const secretKey = process.env.PINATA_SECRET_KEY;
 
@@ -82,15 +55,10 @@ async function pinFileToIPFS(buffer, fileName) {
 
 /**
  * Returns a gateway URL to retrieve a file from IPFS.
- * Handles mock local files as well.
  * @param {string} cid 
- * @returns {string} HTTP Gateway URL or local endpoint
+ * @returns {string} HTTP Gateway URL
  */
 function getIPFSGatewayUrl(cid) {
-  if (cid.startsWith("QmMockIPFS")) {
-    return `/v1/verify/ipfs/${cid}`;
-  }
-  // Public Pinata/IPFS gateway
   return `https://gateway.pinata.cloud/ipfs/${cid}`;
 }
 

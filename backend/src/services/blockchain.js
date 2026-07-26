@@ -2,33 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { ethers } = require("ethers");
 
-// Paths
-const LEDGER_PATH = path.join(__dirname, "../../storage/blockchain_ledger.json");
 const CONTRACT_DETAILS_PATH = path.join(__dirname, "../config/contract_details.json");
-
-// Helper to load ledger for Mock Mode
-function readLedger() {
-  if (!fs.existsSync(path.dirname(LEDGER_PATH))) {
-    fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
-  }
-  if (!fs.existsSync(LEDGER_PATH)) {
-    // Initial state: admin is 0xAdminAddress, authorized issuers map, certificates map
-    fs.writeFileSync(
-      LEDGER_PATH,
-      JSON.stringify({
-        admin: "0xAdmin00000000000000000000000000000000001",
-        authorizedIssuers: {},
-        certificates: {},
-        transactions: []
-      }, null, 2)
-    );
-  }
-  return JSON.parse(fs.readFileSync(LEDGER_PATH, "utf8"));
-}
-
-function writeLedger(data) {
-  fs.writeFileSync(LEDGER_PATH, JSON.stringify(data, null, 2), "utf8");
-}
 
 // Global variables for ethers
 let provider = null;
@@ -45,11 +19,8 @@ try {
   console.warn("[Blockchain Service] Error loading contract_details.json:", error.message);
 }
 
-// Initialise Ethers if not in mock mode
+// Initialise Ethers connection
 function initEthers() {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-  if (isMock) return;
-
   if (provider && contract) return; // already initialized
 
   try {
@@ -74,26 +45,10 @@ function initEthers() {
  * Authorizes an institution's wallet address on-chain.
  */
 async function authorizeIssuer(institutionWallet) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    console.log(`[Blockchain Service] [MOCK] Authorizing issuer: ${institutionWallet}`);
-    const ledger = readLedger();
-    ledger.authorizedIssuers[institutionWallet.toLowerCase()] = true;
-    ledger.transactions.push({
-      event: "IssuerAuthorized",
-      issuer: institutionWallet,
-      txHash: "0xmocktx" + require("crypto").randomBytes(28).toString("hex"),
-      timestamp: Math.floor(Date.now() / 1000)
-    });
-    writeLedger(ledger);
-    return ledger.transactions[ledger.transactions.length - 1].txHash;
-  }
-
   initEthers();
-  if (!contract) throw new Error("Contract not initialized on-chain");
+  if (!contract) throw new Error("Contract not initialized on-chain. Check RPC URL and CONTRACT_ADDRESS.");
 
-  console.log(`[Blockchain Service] Authorizing issuer on Polygon Amoy: ${institutionWallet}`);
+  console.log(`[Blockchain Service] Authorizing issuer on blockchain: ${institutionWallet}`);
   const tx = await contract.authorizeIssuer(institutionWallet);
   const receipt = await tx.wait();
   console.log(`[Blockchain Service] Issuer authorized in tx: ${receipt.hash}`);
@@ -104,18 +59,8 @@ async function authorizeIssuer(institutionWallet) {
  * Deauthorizes an institution's wallet address on-chain.
  */
 async function deauthorizeIssuer(institutionWallet) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    console.log(`[Blockchain Service] [MOCK] Deauthorizing issuer: ${institutionWallet}`);
-    const ledger = readLedger();
-    ledger.authorizedIssuers[institutionWallet.toLowerCase()] = false;
-    writeLedger(ledger);
-    return "0xmocktx" + require("crypto").randomBytes(28).toString("hex");
-  }
-
   initEthers();
-  if (!contract) throw new Error("Contract not initialized on-chain");
+  if (!contract) throw new Error("Contract not initialized on-chain. Check RPC URL and CONTRACT_ADDRESS.");
 
   const tx = await contract.deauthorizeIssuer(institutionWallet);
   const receipt = await tx.wait();
@@ -126,16 +71,8 @@ async function deauthorizeIssuer(institutionWallet) {
  * Verifies if an institution wallet address is authorized.
  */
 async function isAuthorizedIssuer(institutionWallet) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    const ledger = readLedger();
-    return !!ledger.authorizedIssuers[institutionWallet.toLowerCase()];
-  }
-
   initEthers();
   if (!contract) {
-    // If not initialized, return false
     return false;
   }
 
@@ -152,41 +89,8 @@ async function isAuthorizedIssuer(institutionWallet) {
  * Registers the certId, PDF SHA-256 hash, and IPFS CID.
  */
 async function issueCertificate(certId, certHash, ipfsCID, institutionWallet) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    console.log(`[Blockchain Service] [MOCK] Issuing certificate. ID: ${certId}`);
-    const ledger = readLedger();
-    
-    if (ledger.certificates[certId]) {
-      throw new Error("Certificate already exists");
-    }
-
-    ledger.certificates[certId] = {
-      certHash: certHash.toLowerCase(),
-      ipfsCID,
-      issuer: institutionWallet,
-      issuedAt: Math.floor(Date.now() / 1000),
-      revoked: false
-    };
-
-    const txHash = "0xmocktx" + require("crypto").randomBytes(28).toString("hex");
-    ledger.transactions.push({
-      event: "CertificateIssued",
-      certId,
-      issuer: institutionWallet,
-      certHash,
-      ipfsCID,
-      txHash,
-      timestamp: ledger.certificates[certId].issuedAt
-    });
-
-    writeLedger(ledger);
-    return txHash;
-  }
-
   initEthers();
-  if (!contract) throw new Error("Contract not initialized on-chain");
+  if (!contract) throw new Error("Contract not initialized on-chain. Check RPC URL and CONTRACT_ADDRESS.");
 
   // Check if admin relayer wallet is authorized as an issuer on-chain
   const isAuth = await contract.isAuthorizedIssuer(adminWallet.address);
@@ -208,33 +112,10 @@ async function issueCertificate(certId, certHash, ipfsCID, institutionWallet) {
  * Revokes a certificate on-chain.
  */
 async function revokeCertificate(certId) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    console.log(`[Blockchain Service] [MOCK] Revoking certificate: ${certId}`);
-    const ledger = readLedger();
-    
-    if (!ledger.certificates[certId]) {
-      throw new Error("Certificate does not exist");
-    }
-
-    ledger.certificates[certId].revoked = true;
-    const txHash = "0xmocktx" + require("crypto").randomBytes(28).toString("hex");
-    ledger.transactions.push({
-      event: "CertificateRevoked",
-      certId,
-      txHash,
-      timestamp: Math.floor(Date.now() / 1000)
-    });
-
-    writeLedger(ledger);
-    return txHash;
-  }
-
   initEthers();
-  if (!contract) throw new Error("Contract not initialized on-chain");
+  if (!contract) throw new Error("Contract not initialized on-chain. Check RPC URL and CONTRACT_ADDRESS.");
 
-  console.log(`[Blockchain Service] Revoking certificate on Polygon Amoy: ${certId}`);
+  console.log(`[Blockchain Service] Revoking certificate on blockchain: ${certId}`);
   const tx = await contract.revokeCertificate(certId);
   const receipt = await tx.wait();
   console.log(`[Blockchain Service] Revoked in tx: ${receipt.hash}`);
@@ -245,27 +126,8 @@ async function revokeCertificate(certId) {
  * Verifies certificate by ID and Hash.
  */
 async function verifyCertificate(certId, providedHash) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    const ledger = readLedger();
-    const c = ledger.certificates[certId];
-    if (!c) {
-      return { isValid: false, isRevoked: false, issuer: null, issuedAt: 0, ipfsCID: "" };
-    }
-    const isValid = (c.certHash.toLowerCase() === providedHash.toLowerCase());
-    return {
-      isValid,
-      isRevoked: c.revoked,
-      issuer: c.issuer,
-      issuedAt: c.issuedAt,
-      ipfsCID: c.ipfsCID
-    };
-  }
-
   initEthers();
   if (!contract) {
-    // Return empty mock verification if contract isn't ready but not in mock mode (prevents crashes)
     return { isValid: false, isRevoked: false, issuer: null, issuedAt: 0, ipfsCID: "" };
   }
 
@@ -288,21 +150,6 @@ async function verifyCertificate(certId, providedHash) {
  * Gets details of a certificate directly by ID.
  */
 async function getCertificate(certId) {
-  const isMock = process.env.USE_MOCK_SERVICES === "true";
-
-  if (isMock) {
-    const ledger = readLedger();
-    const c = ledger.certificates[certId];
-    if (!c) return null;
-    return {
-      certHash: c.certHash,
-      ipfsCID: c.ipfsCID,
-      issuer: c.issuer,
-      issuedAt: c.issuedAt,
-      revoked: c.revoked
-    };
-  }
-
   initEthers();
   if (!contract) return null;
 

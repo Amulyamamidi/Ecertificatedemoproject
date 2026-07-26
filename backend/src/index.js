@@ -33,8 +33,7 @@ app.get("/", (req, res) => {
   res.json({
     status: "healthy",
     service: "academic-certificate-verification-api",
-    version: "1.0.0",
-    mockMode: process.env.USE_MOCK_SERVICES === "true"
+    version: "1.0.0"
   });
 });
 
@@ -57,6 +56,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(`🚀 API Server running on port: ${PORT}`);
-  console.log(`📁 Mock Mode: ${process.env.USE_MOCK_SERVICES === "true" ? "ACTIVE (Offline)" : "INACTIVE (Production)"}`);
   console.log(`==================================================`);
 });

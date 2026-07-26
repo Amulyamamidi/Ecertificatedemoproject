@@ -89,9 +89,6 @@ export default function StudentPortal() {
   };
 
   const getIpfsLink = (cid) => {
-    if (cid.startsWith("QmMockIPFS")) {
-      return `${API_BASE_URL}/verify/ipfs/${cid}`;
-    }
     return `https://gateway.pinata.cloud/ipfs/${cid}`;
   };
 

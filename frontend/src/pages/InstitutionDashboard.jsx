@@ -135,16 +135,10 @@ export default function InstitutionDashboard() {
   };
 
   const getScanLink = (txHash) => {
-    if (txHash.startsWith("0xmocktx")) {
-      return "#";
-    }
-    return `https://amoy.polygonscan.com/tx/${txHash}`;
+    return `https://sepolia.etherscan.io/tx/${txHash}`;
   };
 
   const getIpfsLink = (cid) => {
-    if (cid.startsWith("QmMockIPFS")) {
-      return `${API_BASE_URL}/verify/ipfs/${cid}`;
-    }
     return `https://gateway.pinata.cloud/ipfs/${cid}`;
   };
 

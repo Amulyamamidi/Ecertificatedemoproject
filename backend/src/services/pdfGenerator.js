@@ -281,9 +281,7 @@ async function generateCertificatePDF(details) {
 
     // 6. Secure Blockchain Verification Protocol Footer Block (Includes Hash Value ID)
     let platformName = "Polygon Amoy Testnet";
-    if (process.env.USE_MOCK_SERVICES === "true") {
-      platformName = "Mock Blockchain Ledger";
-    } else if ((process.env.ALCHEMY_AMOY_RPC_URL || "").includes("sepolia")) {
+    if ((process.env.ALCHEMY_AMOY_RPC_URL || "").includes("sepolia")) {
       platformName = "Ethereum Sepolia Testnet";
     }
 
