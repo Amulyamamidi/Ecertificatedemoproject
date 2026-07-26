@@ -18,15 +18,17 @@ router.post("/institution/register", async (req, res) => {
   }
 
   try {
-    // Check if institution already exists
-    const checkUser = await db.query("SELECT * FROM institutions WHERE email = $1", [email]);
+    // Run DB check and bcrypt password hash in parallel for maximum speed
+    const [checkUser, passwordHash] = await Promise.all([
+      db.query("SELECT * FROM institutions WHERE email = $1", [email]),
+      bcrypt.hash(password, 6)
+    ]);
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     if (checkUser.rows.length > 0) {
       const existing = checkUser.rows[0];
       if (!existing.is_verified) {
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
         await db.query(
           "UPDATE institutions SET name = $1, wallet_address = $2, password_hash = $3, otp_code = $4 WHERE email = $5",
           [name, walletAddress, passwordHash, otp, email]
@@ -46,12 +48,8 @@ router.post("/institution/register", async (req, res) => {
       return res.status(400).json({ error: "Institution email already registered." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
     // Save as pending approval and unverified email
-    const result = await db.query(
+    await db.query(
       "INSERT INTO institutions (name, wallet_address, email, password_hash, status, is_verified, otp_code) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [name, walletAddress, email, passwordHash, "pending", false, otp]
     );
@@ -161,14 +159,16 @@ router.post("/student/register", async (req, res) => {
   }
 
   try {
-    const checkUser = await db.query("SELECT * FROM students WHERE email = $1", [email]);
+    const [checkUser, passwordHash] = await Promise.all([
+      db.query("SELECT * FROM students WHERE email = $1", [email]),
+      bcrypt.hash(password, 6)
+    ]);
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     if (checkUser.rows.length > 0) {
       const existing = checkUser.rows[0];
       if (!existing.is_verified) {
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
         await db.query(
           "UPDATE students SET name = $1, registration_number = $2, password_hash = $3, otp_code = $4 WHERE email = $5",
           [name, registrationNumber, passwordHash, otp, email]
@@ -188,11 +188,7 @@ router.post("/student/register", async (req, res) => {
       return res.status(400).json({ error: "Student email already registered." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const result = await db.query(
+    await db.query(
       "INSERT INTO students (registration_number, name, email, password_hash, is_verified, otp_code) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [registrationNumber, name, email, passwordHash, false, otp]
     );
