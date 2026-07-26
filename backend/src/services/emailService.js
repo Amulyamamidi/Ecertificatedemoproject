@@ -5,8 +5,8 @@ require("dotenv").config();
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "465", 10);
-  const user = process.env.SMTP_USER;
-  const rawPass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
+  const rawPass = process.env.SMTP_PASS || "ofjzhlperzxctkpn";
   const pass = rawPass.replace(/\s+/g, "");
 
   if (!user || !pass) {
