@@ -45,8 +45,9 @@ async function sendOtpEmail(toEmail, otp, userName) {
     return false;
   }
 
+  const senderEmail = process.env.SMTP_USER || "saikumaredakula@gmail.com";
   const mailOptions = {
-    from: `"CertiShield JNTUGV" <${process.env.SMTP_USER}>`,
+    from: `"CertiShield JNTUGV" <${senderEmail}>`,
     to: toEmail,
     subject: `Verify your Email - CertiShield JNTUGV`,
     html: `
