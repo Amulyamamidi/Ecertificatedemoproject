@@ -46,7 +46,7 @@ router.post("/institution/register", async (req, res) => {
     });
   } catch (error) {
     console.error("[Auth Route] Institution register error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
@@ -124,7 +124,7 @@ router.post("/institution/login", async (req, res) => {
     });
   } catch (error) {
     console.error("[Auth Route] Institution login error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
@@ -165,7 +165,7 @@ router.post("/student/register", async (req, res) => {
     });
   } catch (error) {
     console.error("[Auth Route] Student register error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
@@ -234,7 +234,7 @@ router.post("/student/login", async (req, res) => {
     });
   } catch (error) {
     console.error("[Auth Route] Student login error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 

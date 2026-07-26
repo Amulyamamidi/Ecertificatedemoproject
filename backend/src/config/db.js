@@ -74,8 +74,8 @@ function runMockQuery(text, params) {
   
   // 1. SELECT * FROM institutions WHERE email = $1
   if (normalizedQuery.includes("select * from institutions where email =")) {
-    const email = params[0].toLowerCase();
-    const rows = db.institutions.filter(inst => inst.email.toLowerCase() === email);
+    const email = (params[0] || "").toLowerCase();
+    const rows = (db.institutions || []).filter(inst => inst && inst.email && inst.email.toLowerCase() === email);
     return { rows };
   }
 
@@ -93,6 +93,7 @@ function runMockQuery(text, params) {
       otp_code: otp_code || null,
       created_at: new Date().toISOString()
     };
+    db.institutions = db.institutions || [];
     db.institutions.push(newInst);
     saveMockDb(db);
     return { rows: [newInst] };
@@ -100,8 +101,8 @@ function runMockQuery(text, params) {
 
   // 3. SELECT * FROM students WHERE email = $1
   if (normalizedQuery.includes("select * from students where email =")) {
-    const email = params[0].toLowerCase();
-    const rows = db.students.filter(stud => stud.email.toLowerCase() === email);
+    const email = (params[0] || "").toLowerCase();
+    const rows = (db.students || []).filter(stud => stud && stud.email && stud.email.toLowerCase() === email);
     return { rows };
   }
 
