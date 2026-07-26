@@ -11,11 +11,12 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // OTP Verification States (in case they login with unverified email)
+  // OTP Verification States (in case they login with unverified email)  // OTP Fields
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otp, setOtp] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationRole, setVerificationRole] = useState("");
+  const [receivedDemoOtp, setReceivedDemoOtp] = useState("");
 
   // Forgot Password States
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -28,23 +29,23 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      return setError("Please fill out all fields.");
-    }
-
-    setLoading(true);
     setError("");
     setSuccess("");
 
+    if (!email || !password) {
+      return setError("Email and password are required.");
+    }
+
+    setLoading(true);
+
     try {
       const user = await login(email, password, role);
-
-      // Redirect based on role
-      if (user.role === "admin") {
+      
+      if (role === "admin") {
         navigate("/admin");
-      } else if (user.role === "institution") {
+      } else if (role === "institution") {
         navigate("/institution");
       } else {
         navigate("/student");
@@ -53,8 +54,11 @@ export default function LoginPage() {
       if (err.needsVerification) {
         setVerificationEmail(err.email || email);
         setVerificationRole(err.role || role);
+        if (err.demoOtp) {
+          setReceivedDemoOtp(err.demoOtp);
+        }
         setShowOtpScreen(true);
-        setSuccess("Email verification required. We've sent a code to your email.");
+        setSuccess("Email verification required.");
       } else {
         setError(err.message || "Invalid credentials.");
       }
@@ -128,7 +132,10 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to send reset OTP.");
 
-      setSuccess("Verification OTP has been sent to your email address.");
+      if (data.demoOtp) {
+        setReceivedDemoOtp(data.demoOtp);
+      }
+      setSuccess("Verification OTP has been sent.");
       setForgotStep(2);
     } catch (err) {
       setError(err.message);
@@ -286,9 +293,21 @@ export default function LoginPage() {
                   <p className="text-xs text-slate-600 text-center">
                     A 6-digit verification code has been sent to <span className="font-semibold text-slate-900">{forgotEmail}</span>.
                   </p>
-                  <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 font-medium text-center">
-                    🔔 Check your backend terminal logs if SMTP email is in fallback mode!
-                  </p>
+
+                  {receivedDemoOtp && (
+                    <div className="p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-center space-y-2 mb-4 animate-fade-in shadow-sm">
+                      <p className="text-xs text-blue-700 font-medium">
+                        🔑 Verification Code: <span className="font-bold text-blue-900 text-sm tracking-widest bg-blue-100/70 px-2 py-0.5 rounded-lg border border-blue-200">{receivedDemoOtp}</span>
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setForgotOtp(receivedDemoOtp)}
+                        className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow transition-all duration-150 flex items-center justify-center gap-1.5"
+                      >
+                        <span>✨ Auto-Fill Code</span>
+                      </button>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-700">Verification Code (OTP)</label>
@@ -395,9 +414,20 @@ export default function LoginPage() {
               <p className="text-sm text-slate-500">
                 We've sent a 6-digit verification code to <span className="font-semibold text-slate-800">{verificationEmail}</span>.
               </p>
-              <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 font-medium">
-                🔔 Please check your backend terminal console logs to retrieve the OTP code!
-              </p>
+              {receivedDemoOtp && (
+                <div className="p-3.5 bg-blue-50 border border-blue-200/80 rounded-2xl text-center space-y-2 animate-fade-in shadow-sm">
+                  <p className="text-xs text-blue-700 font-medium">
+                    🔑 Verification Code: <span className="font-bold text-blue-900 text-sm tracking-widest bg-blue-100/70 px-2 py-0.5 rounded-lg border border-blue-200">{receivedDemoOtp}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOtp(receivedDemoOtp)}
+                    className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow transition-all duration-150 flex items-center justify-center gap-1.5"
+                  >
+                    <span>✨ Auto-Fill OTP Code</span>
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-2">
                 <div>
