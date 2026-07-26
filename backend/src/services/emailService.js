@@ -4,7 +4,7 @@ require("dotenv").config();
 // Create SMTP Transporter
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
+  const port = parseInt(process.env.SMTP_PORT || "465", 10);
   const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
   const rawPass = process.env.SMTP_PASS || "egitfqhwvivtaxxv";
   const pass = rawPass.replace(/\s+/g, "");
@@ -21,9 +21,9 @@ const createTransporter = () => {
       user,
       pass
     },
-    connectionTimeout: 3000,
-    greetingTimeout: 3000,
-    socketTimeout: 3000
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000
   });
 };
 
