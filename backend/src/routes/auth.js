@@ -343,6 +343,44 @@ router.post("/verify-otp", async (req, res) => {
 });
 
 /**
+ * Resend OTP Code for Registration / Verification
+ */
+router.post("/resend-otp", async (req, res) => {
+  const { email, role } = req.body;
+
+  if (!email || !role) {
+    return res.status(400).json({ error: "Email and role are required." });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const tableName = role === "student" ? "students" : "institutions";
+
+  try {
+    const userQuery = await db.query(`SELECT * FROM ${tableName} WHERE email = $1`, [cleanEmail]);
+    if (userQuery.rows.length === 0) {
+      return res.status(404).json({ error: "Account not found for the specified email." });
+    }
+
+    const user = userQuery.rows[0];
+    if (user.is_verified) {
+      return res.status(400).json({ error: "Email address is already verified." });
+    }
+
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    await db.query(`UPDATE ${tableName} SET otp_code = $1 WHERE email = $2`, [newOtp, cleanEmail]);
+
+    await emailService.sendOtpEmail(cleanEmail, newOtp, user.name);
+
+    res.json({
+      message: `A new 6-digit verification code has been sent to ${cleanEmail}.`
+    });
+  } catch (error) {
+    console.error("[Auth Route] Resend OTP error:", error);
+    res.status(500).json({ error: "Failed to resend verification code. Please try again." });
+  }
+});
+
+/**
  * Request OTP for Forgot Password (Student & Institution)
  */
 router.post("/forgot-password/request-otp", async (req, res) => {

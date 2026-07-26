@@ -63,6 +63,28 @@ export default function LoginPage() {
     }
   };
 
+  const [resending, setResending] = useState(false);
+
+  const handleResendOtp = async () => {
+    setResending(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/resend-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail, role: verificationRole })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to resend code.");
+      setSuccess(data.message || "A new 6-digit verification code has been sent to your email.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (otp.length !== 6) {
@@ -443,6 +465,25 @@ export default function LoginPage() {
                     </>
                   )}
                 </button>
+
+                <div className="pt-2 text-center border-t border-slate-100 flex flex-col items-center gap-1.5">
+                  <p className="text-xs text-slate-500">Didn't receive the email code?</p>
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={resending || loading}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline disabled:opacity-50 transition duration-150 inline-flex items-center gap-1"
+                  >
+                    {resending ? (
+                      <>
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        Resending Code...
+                      </>
+                    ) : (
+                      "📩 Resend Verification Code"
+                    )}
+                  </button>
+                </div>
 
                 <button
                   type="button"
