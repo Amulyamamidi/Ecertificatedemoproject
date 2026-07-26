@@ -5,8 +5,9 @@ require("dotenv").config();
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
+  const rawPass = process.env.SMTP_PASS || "egitfqhwvivtaxxv";
+  const pass = rawPass.replace(/\s+/g, "");
 
   if (!user || !pass) {
     return null;
@@ -15,7 +16,7 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     host,
     port,
-    secure: port === 465, // true for 465, false for other ports
+    secure: port === 465,
     auth: {
       user,
       pass
