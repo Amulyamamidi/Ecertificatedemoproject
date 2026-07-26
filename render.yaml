@@ -42,5 +42,4 @@ services:
         fromService:
           type: web
           name: certificate-verification-backend
-          property: host
-          path: /v1
+          property: url

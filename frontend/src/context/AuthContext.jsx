@@ -2,10 +2,16 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
-const rawApiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/v1";
-export const API_BASE_URL = (rawApiUrl.startsWith("http://") || rawApiUrl.startsWith("https://"))
-  ? rawApiUrl
-  : `https://${rawApiUrl}`;
+const rawApiUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/v1").trim();
+let normalizedUrl = rawApiUrl;
+if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
+  normalizedUrl = `https://${normalizedUrl}`;
+}
+normalizedUrl = normalizedUrl.replace(/\/+$/, "");
+if (!normalizedUrl.endsWith("/v1")) {
+  normalizedUrl = `${normalizedUrl}/v1`;
+}
+export const API_BASE_URL = normalizedUrl;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
