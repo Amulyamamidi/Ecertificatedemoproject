@@ -23,11 +23,14 @@ async function sendOtpEmail(toEmail, otp, userName) {
   }
 
   const templateParams = {
+    email: toEmail,
     to_email: toEmail,
-    to_name: userName || "User",
-    user_name: userName || "User",
+    passcode: otp,
     otp_code: otp,
     otp: otp,
+    time: "15 minutes",
+    to_name: userName || "User",
+    user_name: userName || "User",
     subject: "Verify your Email - CertiShield JNTUGV"
   };
 
