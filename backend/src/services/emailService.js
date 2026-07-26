@@ -1,40 +1,8 @@
-const nodemailer = require("nodemailer");
 const { Resend } = require("resend");
 require("dotenv").config();
 
-let cachedTransporter = null;
-
-// Create Pooled SMTP Transporter
-const createTransporter = () => {
-  if (cachedTransporter) return cachedTransporter;
-
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
-  const rawPass = process.env.SMTP_PASS || "ofjzhlperzxctkpn";
-  const pass = rawPass.replace(/\s+/g, "");
-
-  if (!user || !pass) {
-    return null;
-  }
-
-  cachedTransporter = nodemailer.createTransport({
-    service: "gmail",
-    pool: true,
-    maxConnections: 5,
-    maxMessages: 100,
-    rateDelta: 1000,
-    rateLimit: 5,
-    auth: {
-      user,
-      pass
-    }
-  });
-
-  return cachedTransporter;
-};
-
 /**
- * Sends a premium HTML email containing the verification OTP
+ * Sends a premium HTML email containing the verification OTP using Resend API exclusively
  * @param {string} toEmail - Recipient email address
  * @param {string} otp - 6-Digit OTP code
  * @param {string} userName - Name of the user (student or institution)
@@ -148,58 +116,36 @@ async function sendOtpEmail(toEmail, otp, userName) {
     </html>
   `;
 
-  // 1. Try Resend API if RESEND_API_KEY is configured
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey) {
-    try {
-      const resend = new Resend(resendApiKey);
-      const fromEmail = process.env.RESEND_FROM_EMAIL || "CertiShield <onboarding@resend.dev>";
-      const { data, error } = await resend.emails.send({
-        from: fromEmail,
-        to: [toEmail],
-        subject: `Verify your Email - CertiShield JNTUGV`,
-        html: htmlContent
-      });
-
-      if (error) {
-        console.error("❌ [RESEND API] Error sending email:", error.message || error);
-      } else if (data && data.id) {
-        console.log(`🚀 [RESEND API] Instant OTP email sent to ${toEmail} (ID: ${data.id})`);
-        return true;
-      }
-    } catch (resendErr) {
-      console.error("❌ [RESEND API] Exception:", resendErr.message);
-    }
-  }
-
-  // 2. Fallback to Nodemailer SMTP
-  const transporter = createTransporter();
-
-  if (!transporter) {
+  if (!process.env.RESEND_API_KEY) {
     console.warn("==================================================");
-    console.warn("⚠️ [EMAIL SERVICE] SMTP Credentials not configured in backend/.env!");
-    console.warn(`📩 [FALLBACK LOG] OTP for ${toEmail} is: ${otp}`);
+    console.warn("⚠️ [RESEND EMAIL SERVICE] RESEND_API_KEY is not set in backend/.env!");
+    console.warn(`📩 [CONSOLE LOG] Verification OTP for ${toEmail} is: ${otp}`);
     console.warn("==================================================");
     return false;
   }
 
-  const senderEmail = process.env.SMTP_USER || "saikumaredakula@gmail.com";
-  const mailOptions = {
-    from: `"CertiShield JNTUGV" <${senderEmail}>`,
-    to: toEmail,
-    subject: `Verify your Email - CertiShield JNTUGV`,
-    html: htmlContent
-  };
-
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`📧 [EMAIL SERVICE] Verification OTP email successfully sent to ${toEmail} (MessageId: ${info.messageId})`);
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "CertiShield <onboarding@resend.dev>";
+    
+    const { data, error } = await resend.emails.send({
+      from: fromEmail,
+      to: [toEmail],
+      subject: `Verify your Email - CertiShield JNTUGV`,
+      html: htmlContent
+    });
+
+    if (error) {
+      console.error("❌ [RESEND API] Failed to send email:", error.message || error);
+      console.warn(`📩 [FALLBACK LOG] OTP for ${toEmail} is: ${otp}`);
+      return false;
+    }
+
+    console.log(`🚀 [RESEND API] Instant OTP email sent to ${toEmail} (ID: ${data.id})`);
     return true;
-  } catch (error) {
-    console.error(`❌ [EMAIL SERVICE] Failed to send OTP email to ${toEmail}:`, error.message);
-    console.warn("==================================================");
+  } catch (err) {
+    console.error("❌ [RESEND API] Exception while sending email:", err.message);
     console.warn(`📩 [FALLBACK LOG] OTP for ${toEmail} is: ${otp}`);
-    console.warn("==================================================");
     return false;
   }
 }
