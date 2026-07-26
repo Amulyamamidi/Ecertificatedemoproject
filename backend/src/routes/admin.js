@@ -22,7 +22,7 @@ router.get("/institutions/pending", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("[Admin Route] Get pending error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
@@ -35,7 +35,7 @@ router.get("/institutions", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("[Admin Route] Get all error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
@@ -206,7 +206,7 @@ router.get("/applications/pending", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("[Admin Route] Get pending applications error:", error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
