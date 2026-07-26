@@ -136,7 +136,7 @@ async function sendOtpEmail(toEmail, otp, userName) {
     });
 
     if (error) {
-      console.error("❌ [RESEND API] Failed to send email:", error.message || error);
+      console.error("❌ [RESEND API] Failed to send email:", error.message || JSON.stringify(error));
       console.warn(`📩 [FALLBACK LOG] OTP for ${toEmail} is: ${otp}`);
       return false;
     }
