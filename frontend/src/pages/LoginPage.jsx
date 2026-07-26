@@ -519,7 +519,7 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <form className="space-y-5" onSubmit={handleSubmit}>
+              <form className="space-y-5" onSubmit={handleLogin}>
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-slate-700">
                     Email Address
