@@ -17,11 +17,13 @@ router.post("/institution/register", async (req, res) => {
     return res.status(400).json({ error: "All fields are required." });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
     // Run DB check and bcrypt password hash in parallel for maximum speed
     const [checkUser, passwordHash] = await Promise.all([
-      db.query("SELECT * FROM institutions WHERE email = $1", [email]),
-      bcrypt.hash(password, 6)
+      db.query("SELECT * FROM institutions WHERE email = $1", [cleanEmail]),
+      bcrypt.hash(password, 10)
     ]);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -76,8 +78,10 @@ router.post("/institution/login", async (req, res) => {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
-    const result = await db.query("SELECT * FROM institutions WHERE email = $1", [email]);
+    const result = await db.query("SELECT * FROM institutions WHERE email = $1", [cleanEmail]);
     if (result.rows.length === 0) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
@@ -152,10 +156,12 @@ router.post("/student/register", async (req, res) => {
     return res.status(400).json({ error: "All fields are required." });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
     const [checkUser, passwordHash] = await Promise.all([
-      db.query("SELECT * FROM students WHERE email = $1", [email]),
-      bcrypt.hash(password, 6)
+      db.query("SELECT * FROM students WHERE email = $1", [cleanEmail]),
+      bcrypt.hash(password, 10)
     ]);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -209,8 +215,10 @@ router.post("/student/login", async (req, res) => {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
-    const result = await db.query("SELECT * FROM students WHERE email = $1", [email]);
+    const result = await db.query("SELECT * FROM students WHERE email = $1", [cleanEmail]);
     if (result.rows.length === 0) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
