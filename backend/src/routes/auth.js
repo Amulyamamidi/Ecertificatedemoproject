@@ -21,6 +21,27 @@ router.post("/institution/register", async (req, res) => {
     // Check if institution already exists
     const checkUser = await db.query("SELECT * FROM institutions WHERE email = $1", [email]);
     if (checkUser.rows.length > 0) {
+      const existing = checkUser.rows[0];
+      if (!existing.is_verified) {
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await db.query(
+          "UPDATE institutions SET name = $1, wallet_address = $2, password_hash = $3, otp_code = $4 WHERE email = $5",
+          [name, walletAddress, passwordHash, otp, email]
+        );
+
+        emailService.sendOtpEmail(email, otp, name).catch(err => {
+          console.error("[Auth Route] Resent verification email error:", err);
+        });
+
+        return res.status(200).json({
+          message: "Account pending verification. A new verification OTP has been sent to your email.",
+          email,
+          role: "institution"
+        });
+      }
       return res.status(400).json({ error: "Institution email already registered." });
     }
 
@@ -141,6 +162,27 @@ router.post("/student/register", async (req, res) => {
   try {
     const checkUser = await db.query("SELECT * FROM students WHERE email = $1", [email]);
     if (checkUser.rows.length > 0) {
+      const existing = checkUser.rows[0];
+      if (!existing.is_verified) {
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await db.query(
+          "UPDATE students SET name = $1, registration_number = $2, password_hash = $3, otp_code = $4 WHERE email = $5",
+          [name, registrationNumber, passwordHash, otp, email]
+        );
+
+        emailService.sendOtpEmail(email, otp, name).catch(err => {
+          console.error("[Auth Route] Resent verification email error:", err);
+        });
+
+        return res.status(200).json({
+          message: "Account pending verification. A new verification OTP has been sent to your email.",
+          email,
+          role: "student"
+        });
+      }
       return res.status(400).json({ error: "Student email already registered." });
     }
 
