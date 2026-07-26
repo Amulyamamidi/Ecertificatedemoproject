@@ -4,7 +4,6 @@ require("dotenv").config();
 // Create SMTP Transporter
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const user = process.env.SMTP_USER || "saikumaredakula@gmail.com";
   const rawPass = process.env.SMTP_PASS || "ofjzhlperzxctkpn";
   const pass = rawPass.replace(/\s+/g, "");
@@ -13,28 +12,15 @@ const createTransporter = () => {
     return null;
   }
 
-  // Use Nodemailer's built-in Gmail service configuration for Gmail host
-  if (host.includes("gmail")) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user,
-        pass
-      }
-    });
-  }
-
   return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
+    service: "gmail",
     auth: {
       user,
       pass
     },
-    tls: {
-      rejectUnauthorized: false
-    }
+    connectionTimeout: 4000,
+    greetingTimeout: 4000,
+    socketTimeout: 4000
   });
 };
 

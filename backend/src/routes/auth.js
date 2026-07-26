@@ -34,7 +34,7 @@ router.post("/institution/register", async (req, res) => {
           [name, walletAddress, passwordHash, otp, email]
         );
 
-        await emailService.sendOtpEmail(email, otp, name).catch(err => {
+        emailService.sendOtpEmail(email, otp, name).catch(err => {
           console.error("[Auth Route] Background email send error:", err);
         });
 
@@ -54,7 +54,7 @@ router.post("/institution/register", async (req, res) => {
       [name, walletAddress, email, passwordHash, "pending", false, otp]
     );
 
-    await emailService.sendOtpEmail(email, otp, name).catch(err => {
+    emailService.sendOtpEmail(email, otp, name).catch(err => {
       console.error("[Auth Route] Background email send error:", err);
     });
 
@@ -94,7 +94,7 @@ router.post("/institution/login", async (req, res) => {
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.query("UPDATE institutions SET otp_code = $1 WHERE email = $2", [newOtp, institution.email]);
 
-      await emailService.sendOtpEmail(institution.email, newOtp, institution.name).catch(err => {
+      emailService.sendOtpEmail(institution.email, newOtp, institution.name).catch(err => {
         console.error("[Auth Route] Background login verification email send error:", err);
       });
 
@@ -174,7 +174,7 @@ router.post("/student/register", async (req, res) => {
           [name, registrationNumber, passwordHash, otp, email]
         );
 
-        await emailService.sendOtpEmail(email, otp, name).catch(err => {
+        emailService.sendOtpEmail(email, otp, name).catch(err => {
           console.error("[Auth Route] Background email send error:", err);
         });
 
@@ -193,7 +193,7 @@ router.post("/student/register", async (req, res) => {
       [registrationNumber, name, email, passwordHash, false, otp]
     );
 
-    await emailService.sendOtpEmail(email, otp, name).catch(err => {
+    emailService.sendOtpEmail(email, otp, name).catch(err => {
       console.error("[Auth Route] Background email send error:", err);
     });
 
@@ -233,7 +233,7 @@ router.post("/student/login", async (req, res) => {
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       await db.query("UPDATE students SET otp_code = $1 WHERE email = $2", [newOtp, student.email]);
 
-      await emailService.sendOtpEmail(student.email, newOtp, student.name).catch(err => {
+      emailService.sendOtpEmail(student.email, newOtp, student.name).catch(err => {
         console.error("[Auth Route] Background email send error:", err);
       });
 
@@ -378,7 +378,7 @@ router.post("/forgot-password/request-otp", async (req, res) => {
 
     await db.query(`UPDATE ${tableName} SET otp_code = $1 WHERE email = $2`, [otp, email]);
 
-    await emailService.sendOtpEmail(email, otp, user.name).catch(err => {
+    emailService.sendOtpEmail(email, otp, user.name).catch(err => {
       console.error("[Auth Route] Background email send error:", err);
     });
 
