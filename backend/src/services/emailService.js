@@ -155,12 +155,11 @@ async function sendOtpEmail(toEmail, otp, userName) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`📧 [EMAIL SERVICE] Verification OTP email successfully sent to ${toEmail}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`📧 [EMAIL SERVICE] Verification OTP email successfully sent to ${toEmail} (MessageId: ${info.messageId})`);
     return true;
   } catch (error) {
-    console.error(`❌ [EMAIL SERVICE] Failed to send OTP email to ${toEmail}:`, error);
-    // Fallback: log to console so the application remains testable
+    console.error(`❌ [EMAIL SERVICE] Failed to send OTP email to ${toEmail}:`, error.message);
     console.warn("==================================================");
     console.warn(`📩 [FALLBACK LOG] OTP for ${toEmail} is: ${otp}`);
     console.warn("==================================================");
