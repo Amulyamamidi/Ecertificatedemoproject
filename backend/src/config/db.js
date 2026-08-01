@@ -19,7 +19,17 @@ try {
   
   pool = new Pool({
     connectionString: dbUrl,
-    ssl: needsSSL ? { rejectUnauthorized: false } : false
+    ssl: needsSSL ? { rejectUnauthorized: false } : false,
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4, all: false }, (err, address, family) => {
+        if (err || !address) {
+          // Fallback to standard lookup if IPv4 only lookup returns empty
+          dns.lookup(hostname, callback);
+        } else {
+          callback(null, address, family);
+        }
+      });
+    }
   });
   console.log("[DB Config] Initialized PostgreSQL connection pool.");
 } catch (error) {
