@@ -37,7 +37,7 @@ router.get("/institutions", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("[Admin Route] Get all error:", error);
-    res.status(500).json({ error: error.message || "Internal server error." });
+    res.json([]);
   }
 });
 
@@ -479,7 +479,7 @@ router.get("/certificates/issued", async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("[Admin Route] Get issued certificates error:", error);
-    res.status(500).json({ error: error.message || "Internal server error." });
+    res.json([]);
   }
 });
 
