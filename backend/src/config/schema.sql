@@ -168,4 +168,27 @@ CREATE TABLE IF NOT EXISTS verification_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_verif_logs_cert ON verification_logs(cert_id);
 
+-- 11. Post-Quantum Cryptography Institution Keypair Table (NIST ML-DSA-65)
+CREATE TABLE IF NOT EXISTS institution_pqc_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    institution_id UUID UNIQUE REFERENCES institutions(id) ON DELETE CASCADE,
+    public_key TEXT NOT NULL,
+    secret_key TEXT NOT NULL,
+    algorithm VARCHAR(50) DEFAULT 'ML-DSA-65',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 12. Post-Quantum Signatures Table (NIST ML-DSA-65)
+CREATE TABLE IF NOT EXISTS pqc_signatures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cert_id VARCHAR(66) UNIQUE REFERENCES certificates(cert_id) ON DELETE CASCADE,
+    institution_id UUID REFERENCES institutions(id) ON DELETE CASCADE,
+    signature TEXT NOT NULL,
+    public_key TEXT NOT NULL,
+    algorithm VARCHAR(50) DEFAULT 'ML-DSA-65',
+    signed_hash VARCHAR(66) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pqc_sig_cert ON pqc_signatures(cert_id);
+
 

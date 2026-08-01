@@ -7,6 +7,7 @@ const blockchain = require("../services/blockchain");
 const hash = require("../services/hash");
 const { getIPFSGatewayUrl } = require("../services/ipfs");
 const { logAudit } = require("../services/auditService");
+const mldsaService = require("../services/mldsaService");
 
 const router = express.Router();
 
@@ -42,11 +43,22 @@ router.get("/:certId", async (req, res) => {
 
     const metadata = dbQuery.rows.length > 0 ? dbQuery.rows[0] : null;
 
+    // Fetch PQC ML-DSA signature record
+    const pqcRecord = await mldsaService.getPqcSignatureByCertId(certId);
+    let isPqcValid = true;
+    if (pqcRecord) {
+      isPqcValid = mldsaService.verifyCertificateSignature(
+        certDetails.certHash,
+        pqcRecord.signature,
+        pqcRecord.public_key
+      );
+    }
+
     // Record verification log
     db.query(
       `INSERT INTO verification_logs (cert_id, verification_result, ip_address, browser, device)
        VALUES ($1, $2, $3, $4, $5)`,
-      [certId, certDetails.revoked ? "REVOKED" : "VALID", req.ip || "127.0.0.1", req.headers["user-agent"] || "Browser", "Direct Lookup"]
+      [certId, certDetails.revoked ? "REVOKED" : (isPqcValid ? "VALID" : "INVALID_PQC"), req.ip || "127.0.0.1", req.headers["user-agent"] || "Browser", "Direct Lookup"]
     ).catch((e) => console.warn("Failed to insert verification log:", e.message));
 
     logAudit({
@@ -58,6 +70,7 @@ router.get("/:certId", async (req, res) => {
 
     res.json({
       certId,
+      isPqcValid,
       onChainDetails: {
         certHash: certDetails.certHash,
         ipfsCID: certDetails.ipfsCID,
@@ -66,6 +79,13 @@ router.get("/:certId", async (req, res) => {
         revoked: certDetails.revoked,
         ipfsUrl: getIPFSGatewayUrl(certDetails.ipfsCID)
       },
+      pqcDetails: pqcRecord ? {
+        algorithm: pqcRecord.algorithm,
+        signature: pqcRecord.signature,
+        publicKey: pqcRecord.public_key,
+        timestamp: pqcRecord.timestamp,
+        isPqcValid
+      } : null,
       metadata: metadata ? {
         studentName: metadata.student_name,
         registrationNumber: metadata.registration_number || "N/A",

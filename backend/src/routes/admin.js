@@ -7,6 +7,7 @@ const hash = require("../services/hash");
 const pdfGen = require("../services/pdfGenerator");
 const { authenticateToken, requireAdmin } = require("../middleware/auth");
 const { logAudit } = require("../services/auditService");
+const mldsaService = require("../services/mldsaService");
 
 const router = express.Router();
 
@@ -281,6 +282,18 @@ router.post("/applications/:id/approve", async (req, res) => {
     // 4. Hash PDF Buffer
     const certHash = hash.hashBuffer(pdfBuffer);
 
+    // 4.5 Generate NIST ML-DSA-65 Post-Quantum Signature
+    let pqcSignature = null;
+    let pqcPublicKey = null;
+    try {
+      const instId = app.institution_id || "00000000-0000-0000-0000-000000000000";
+      const keyPair = await mldsaService.getOrGenerateInstitutionKeyPair(instId);
+      pqcPublicKey = keyPair.publicKey;
+      pqcSignature = mldsaService.signCertificateHash(certHash, keyPair.secretKey);
+    } catch (pqcErr) {
+      console.warn("[Admin Route] PQC ML-DSA signing warning:", pqcErr.message);
+    }
+
     // 5. Pin to IPFS (Pinata)
     let ipfsCID;
     try {
@@ -320,6 +333,18 @@ router.post("/applications/:id/approve", async (req, res) => {
         txHash
       ]
     );
+
+    // Save ML-DSA Post-Quantum Signature metadata
+    if (pqcSignature && pqcPublicKey) {
+      await mldsaService.recordPqcSignature({
+        certId,
+        institutionId: app.institution_id,
+        signature: pqcSignature,
+        publicKey: pqcPublicKey,
+        algorithm: "ML-DSA-65",
+        signedHash: certHash
+      }).catch(() => {});
+    }
 
     // Record on-chain transaction & audit log
     await blockchain.recordTxToDB({

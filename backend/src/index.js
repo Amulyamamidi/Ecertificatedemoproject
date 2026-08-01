@@ -67,6 +67,8 @@ app.use("/api/reports", require("./routes/reports"));
 app.use("/v1/reports", require("./routes/reports"));
 app.use("/api/timeline", require("./routes/timeline"));
 app.use("/v1/timeline", require("./routes/timeline"));
+app.use("/api/pqc", require("./routes/pqc"));
+app.use("/v1/pqc", require("./routes/pqc"));
 
 // Centralized error handling middleware
 app.use((err, req, res, next) => {
