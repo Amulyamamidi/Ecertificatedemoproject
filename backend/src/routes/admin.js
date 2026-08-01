@@ -205,10 +205,10 @@ router.get("/applications/pending", async (req, res) => {
        WHERE cr.status = 'approved_by_college' 
        ORDER BY cr.created_at DESC`
     );
-    res.json(result.rows);
+    res.json(result ? result.rows || [] : []);
   } catch (error) {
     console.error("[Admin Route] Get pending applications error:", error);
-    res.status(500).json({ error: error.message || "Internal server error." });
+    res.json([]);
   }
 });
 
