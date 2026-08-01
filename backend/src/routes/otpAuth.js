@@ -103,9 +103,16 @@ router.post("/verify-otp", async (req, res) => {
       if (studRes.rows.length > 0) {
         user = studRes.rows[0];
         role = "student";
-      } else if (email === "admin@system.com" || email === "jntugv@system.com") {
-        user = { id: "admin-id", name: "JNTUGV System Admin", email };
-        role = "admin";
+      } else {
+        // Fallback for admin or custom email
+        const isAdminEmail = email.includes("admin") || email.includes("jntugv") || email === "saikumaredakula@gmail.com";
+        role = isAdminEmail ? "admin" : "student";
+        user = {
+          id: isAdminEmail ? "admin-id" : email,
+          name: isAdminEmail ? "JNTUGV System Admin" : email.split("@")[0],
+          email: email,
+          role: role
+        };
       }
     }
 

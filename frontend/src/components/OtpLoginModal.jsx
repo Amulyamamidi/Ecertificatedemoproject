@@ -54,14 +54,22 @@ export default function OtpLoginModal({ isOpen, onClose }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Invalid OTP code.");
+      if (!data.token || !data.user) throw new Error("Invalid session response received from authentication server.");
 
       loginWithToken(data.token, data.user);
       onClose();
-      if (data.user.role === "admin") navigate("/admin");
-      else if (data.user.role === "institution") navigate("/institution");
-      else navigate("/student");
+
+      const targetRole = data.user.role || "student";
+      if (targetRole === "admin") {
+        navigate("/admin");
+      } else if (targetRole === "institution") {
+        navigate("/institution");
+      } else {
+        navigate("/student");
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("[OTP Modal Error]", err);
+      setError(err.message || "Failed to verify OTP code.");
     } finally {
       setLoading(false);
     }
