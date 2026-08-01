@@ -11,7 +11,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const { login } = useAuth();
+  const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
   const baseUrl = API_BASE_URL.replace(/\/v1$/, "");
@@ -55,7 +55,7 @@ export default function OtpLoginModal({ isOpen, onClose }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Invalid OTP code.");
 
-      login(data.token, data.user);
+      loginWithToken(data.token, data.user);
       onClose();
       if (data.user.role === "admin") navigate("/admin");
       else if (data.user.role === "institution") navigate("/institution");

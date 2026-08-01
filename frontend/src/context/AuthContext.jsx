@@ -126,6 +126,15 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const loginWithToken = (tokenData, userData) => {
+    if (tokenData && userData) {
+      localStorage.setItem("cert_shield_token", tokenData);
+      localStorage.setItem("cert_shield_user", JSON.stringify(userData));
+      setToken(tokenData);
+      setUser(userData);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("cert_shield_token");
     localStorage.removeItem("cert_shield_user");
@@ -143,6 +152,7 @@ export const AuthProvider = ({ children }) => {
     isInstitution: user?.role === "institution",
     isAdmin: user?.role === "admin",
     login,
+    loginWithToken,
     register,
     logout,
     // Add auth headers helper
