@@ -270,7 +270,8 @@ router.post("/applications/:id/approve", async (req, res) => {
         institutionName: app.institution_name,
         certId,
         issuerWallet: app.institution_wallet,
-        studentPhoto: studentPhotoPath
+        studentPhoto: studentPhotoPath,
+        baseUrl: req.headers.origin || process.env.APP_BASE_URL || process.env.FRONTEND_URL
       });
     } catch (pdfError) {
       console.error("[Admin Route] PDF Generation failed:", pdfError);

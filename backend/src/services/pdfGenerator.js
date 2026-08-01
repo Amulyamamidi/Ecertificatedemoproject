@@ -17,7 +17,8 @@ async function generateCertificatePDF(details) {
   // Generate QR Code Buffer for verification link
   let qrBuffer = null;
   try {
-    const verifyUrl = `${details.baseUrl || "http://localhost:3000"}/verify-by-id?id=${details.certId}`;
+    const activeBaseUrl = (details.baseUrl || process.env.APP_BASE_URL || process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/+$/, "");
+    const verifyUrl = `${activeBaseUrl}/verify-by-id?id=${details.certId}`;
     qrBuffer = await QRCode.toBuffer(verifyUrl, {
       margin: 1,
       width: 150,
