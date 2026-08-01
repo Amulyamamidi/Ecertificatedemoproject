@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth, API_BASE_URL } from "../context/AuthContext";
-import { Award, FileText, CheckCircle, RefreshCw, AlertCircle, ShieldAlert, ShieldCheck, Download, Trash2, XCircle, Check, X, Landmark, GraduationCap } from "lucide-react";
+import { Award, FileText, CheckCircle, RefreshCw, AlertCircle, ShieldAlert, ShieldCheck, Download, Trash2, XCircle, Check, X, Landmark, GraduationCap, Eye } from "lucide-react";
+import RevokeCertificateModal from "../components/RevokeCertificateModal";
+import ViewCertificateModal from "../components/ViewCertificateModal";
 
 export default function InstitutionDashboard() {
   const { authHeaders, user } = useAuth();
@@ -12,6 +15,8 @@ export default function InstitutionDashboard() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [historyError, setHistoryError] = useState("");
   const [revokingId, setRevokingId] = useState(null);
+  const [revokeModalCertId, setRevokeModalCertId] = useState(null);
+  const [selectedCert, setSelectedCert] = useState(null);
 
   // Applications State
   const [applications, setApplications] = useState([]);
@@ -188,6 +193,13 @@ export default function InstitutionDashboard() {
           <Award className="h-4 w-4" />
           Credential Registry Log
         </button>
+
+        <Link
+          to="/institution/bulk-upload"
+          className="ml-auto pb-4 px-4 text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1.5"
+        >
+          <FileText className="h-4 w-4 text-emerald-600" /> Batch Bulk Upload
+        </Link>
       </div>
 
       {/* Tab: Pending Student Applications */}
@@ -364,6 +376,13 @@ export default function InstitutionDashboard() {
                       </td>
                       <td className="py-3.5 px-2 text-right">
                         <div className="flex justify-end items-center gap-2">
+                          <button
+                            onClick={() => setSelectedCert(cert)}
+                            className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-lg border border-emerald-200 transition flex items-center gap-1"
+                            title="View Certificate Details"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> View
+                          </button>
                           <a
                             href={getIpfsLink(cert.ipfs_cid)}
                             target="_blank"
@@ -375,16 +394,11 @@ export default function InstitutionDashboard() {
                           </a>
                           {cert.status !== "revoked" && (
                             <button
-                              onClick={() => handleRevoke(cert.cert_id)}
-                              disabled={revokingId === cert.cert_id}
-                              className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-lg border border-red-200 hover:border-red-500 transition disabled:opacity-50"
+                              onClick={() => setRevokeModalCertId(cert.cert_id)}
+                              className="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg border border-red-200 transition"
                               title="Revoke Credential"
                             >
-                              {revokingId === cert.cert_id ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
+                              Revoke
                             </button>
                           )}
                         </div>
@@ -397,6 +411,22 @@ export default function InstitutionDashboard() {
           )}
         </div>
       )}
+
+      <ViewCertificateModal
+        cert={selectedCert}
+        isOpen={Boolean(selectedCert)}
+        onClose={() => setSelectedCert(null)}
+      />
+
+      <RevokeCertificateModal
+        certId={revokeModalCertId}
+        isOpen={Boolean(revokeModalCertId)}
+        onClose={() => setRevokeModalCertId(null)}
+        onSuccess={() => {
+          setRevokeModalCertId(null);
+          fetchCertificates();
+        }}
+      />
     </div>
   );
 }

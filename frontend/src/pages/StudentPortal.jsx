@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth, API_BASE_URL } from "../context/AuthContext";
-import { Award, Download, Share2, Clipboard, RefreshCw, AlertCircle, ShieldCheck, ShieldAlert, BookOpen, Calendar, Landmark, FileText, Send, ChevronRight } from "lucide-react";
+import { Award, Download, Share2, Clipboard, RefreshCw, AlertCircle, ShieldCheck, ShieldAlert, BookOpen, Calendar, Landmark, FileText, Send, ChevronRight, Eye } from "lucide-react";
+import ViewCertificateModal from "../components/ViewCertificateModal";
 
 export default function StudentPortal() {
   const { authHeaders, user, token } = useAuth();
@@ -12,6 +13,7 @@ export default function StudentPortal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copiedId, setCopiedId] = useState(null);
+  const [selectedCert, setSelectedCert] = useState(null);
 
   // Applications State
   const [applications, setApplications] = useState([]);
@@ -304,30 +306,32 @@ export default function StudentPortal() {
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex gap-3">
+                  <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex gap-2">
+                    <button
+                      onClick={() => setSelectedCert(cert)}
+                      className="flex-1 py-2.5 px-3 bg-emerald-50 text-emerald-800 font-semibold text-xs border border-emerald-200 hover:bg-emerald-100 rounded-xl transition duration-150 flex items-center justify-center gap-1.5"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      View Certificate
+                    </button>
                     <a
                       href={getIpfsLink(cert.ipfs_cid)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 py-2.5 px-3 bg-white text-slate-700 font-semibold text-xs border border-slate-200 hover:bg-slate-100 rounded-xl transition duration-150 flex items-center justify-center gap-1.5"
+                      className="py-2.5 px-3 bg-white text-slate-700 font-semibold text-xs border border-slate-200 hover:bg-slate-100 rounded-xl transition duration-150 flex items-center justify-center gap-1.5"
+                      title="Download PDF"
                     >
                       <Download className="h-3.5 w-3.5" />
-                      Download
                     </a>
                     <button
                       onClick={() => handleShare(cert.cert_id)}
-                      className="flex-1 py-2.5 px-3 bg-brand-900 text-white font-semibold text-xs rounded-xl hover:bg-brand-700 transition duration-150 flex items-center justify-center gap-1.5"
+                      className="py-2.5 px-3 bg-brand-900 text-white font-semibold text-xs rounded-xl hover:bg-brand-700 transition duration-150 flex items-center justify-center gap-1.5"
+                      title="Share Verification Proof"
                     >
                       {copiedId === cert.cert_id ? (
-                        <>
-                          <Clipboard className="h-3.5 w-3.5" />
-                          Copied Link!
-                        </>
+                        <Clipboard className="h-3.5 w-3.5" />
                       ) : (
-                        <>
-                          <Share2 className="h-3.5 w-3.5" />
-                          Share Proof
-                        </>
+                        <Share2 className="h-3.5 w-3.5" />
                       )}
                     </button>
                   </div>
@@ -337,6 +341,12 @@ export default function StudentPortal() {
           )}
         </div>
       )}
+
+      <ViewCertificateModal
+        cert={selectedCert}
+        isOpen={Boolean(selectedCert)}
+        onClose={() => setSelectedCert(null)}
+      />
 
       {/* Tab: Apply for Certificate */}
       {activeTab === "apply" && (

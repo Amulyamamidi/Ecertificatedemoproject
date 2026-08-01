@@ -12,6 +12,13 @@ import InstitutionDashboard from "./pages/InstitutionDashboard";
 import StudentPortal from "./pages/StudentPortal";
 import AdminDashboard from "./pages/AdminDashboard";
 
+// New Feature Pages
+import AuditLogsPage from "./pages/AuditLogsPage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import BulkUploadPage from "./pages/BulkUploadPage";
+import VerificationLogsPage from "./pages/VerificationLogsPage";
+import ActivityTimelinePage from "./pages/ActivityTimelinePage";
+
 export default function App() {
   return (
     <AuthProvider>
@@ -26,6 +33,7 @@ export default function App() {
               <Route path="/verify-by-id" element={<VerifyPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/timeline/:certId" element={<ActivityTimelinePage />} />
               
               {/* Protected Institution Routes */}
               <Route
@@ -33,6 +41,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["institution"]}>
                     <InstitutionDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/institution/bulk-upload"
+                element={
+                  <ProtectedRoute allowedRoles={["institution", "admin"]}>
+                    <BulkUploadPage />
                   </ProtectedRoute>
                 }
               />
@@ -53,6 +69,30 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/audit-logs"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AuditLogsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminAnalyticsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/verification-logs"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <VerificationLogsPage />
                   </ProtectedRoute>
                 }
               />

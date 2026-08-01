@@ -44,6 +44,30 @@ app.use("/v1/institutions", institutionsRouter);
 app.use("/v1/students", studentsRouter);
 app.use("/v1/verify", verifyRouter);
 
+// Register New Feature Routers (supporting /api/ and /v1/ prefixes)
+app.use("/api/audit-logs", require("./routes/auditLogs"));
+app.use("/v1/audit-logs", require("./routes/auditLogs"));
+app.use("/api/revocation", require("./routes/revocation"));
+app.use("/v1/revocation", require("./routes/revocation"));
+app.use("/api/versions", require("./routes/versions"));
+app.use("/v1/versions", require("./routes/versions"));
+app.use("/api/analytics", require("./routes/analytics"));
+app.use("/v1/analytics", require("./routes/analytics"));
+app.use("/api/bulk", require("./routes/bulkUpload"));
+app.use("/v1/bulk", require("./routes/bulkUpload"));
+app.use("/api/email-logs", require("./routes/emailLogs"));
+app.use("/v1/email-logs", require("./routes/emailLogs"));
+app.use("/api/otp-auth", require("./routes/otpAuth"));
+app.use("/v1/otp-auth", require("./routes/otpAuth"));
+app.use("/api/notifications", require("./routes/notifications"));
+app.use("/v1/notifications", require("./routes/notifications"));
+app.use("/api/verification-logs", require("./routes/verificationLogs"));
+app.use("/v1/verification-logs", require("./routes/verificationLogs"));
+app.use("/api/reports", require("./routes/reports"));
+app.use("/v1/reports", require("./routes/reports"));
+app.use("/api/timeline", require("./routes/timeline"));
+app.use("/v1/timeline", require("./routes/timeline"));
+
 // Centralized error handling middleware
 app.use((err, req, res, next) => {
   console.error("[Server Error Handler]", err.stack);

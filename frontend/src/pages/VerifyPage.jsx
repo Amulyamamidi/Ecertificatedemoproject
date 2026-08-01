@@ -1,9 +1,15 @@
-import React, { useState } from "react";
-import { FileUp, Search, ShieldCheck, ShieldAlert, Award, Calendar, Hash, ExternalLink, RefreshCw, Landmark } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { FileUp, Search, ShieldCheck, ShieldAlert, Award, Calendar, Hash, ExternalLink, RefreshCw, Landmark, QrCode, Camera } from "lucide-react";
 import confetti from "canvas-confetti";
 import { API_BASE_URL } from "../context/AuthContext";
+import VersionHistoryModal from "../components/VersionHistoryModal";
+import QrMetadataModal from "../components/QrMetadataModal";
+import QrCodeScannerModal from "../components/QrCodeScannerModal";
 
 export default function VerifyPage() {
+  const location = useLocation();
+
   const [activeTab, setActiveTab] = useState("file"); // "file" or "id"
   const [certId, setCertId] = useState("");
   const [file, setFile] = useState(null);
@@ -11,6 +17,20 @@ export default function VerifyPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
+
+  // Auto-verify when URL query contains ?id=... or ?certId=... (QR Code Link Scan)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const queryId = searchParams.get("id") || searchParams.get("certId") || searchParams.get("hash");
+    if (queryId) {
+      setCertId(queryId);
+      setActiveTab("id");
+      runIdVerification(queryId);
+    }
+  }, [location.search]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -86,16 +106,16 @@ export default function VerifyPage() {
   };
 
   // Submit ID Lookup Verification
-  const verifyId = async (e) => {
-    e.preventDefault();
-    if (!certId.trim()) return;
+  const runIdVerification = async (idToVerify) => {
+    const targetId = (idToVerify || certId).trim();
+    if (!targetId) return;
 
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/verify/${certId.trim()}`);
+      const response = await fetch(`${API_BASE_URL}/verify/${targetId}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -104,8 +124,6 @@ export default function VerifyPage() {
 
       // Check on-chain details
       const onChain = data.onChainDetails;
-      // If we query by ID, it will return metadata if found in DB.
-      // We simulate verification status: if it exists on-chain and isn't revoked, it is valid.
       const isValid = onChain && onChain.issuedAt > 0;
       setResult({
         certId: data.certId,
@@ -124,6 +142,11 @@ export default function VerifyPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const verifyId = async (e) => {
+    if (e) e.preventDefault();
+    runIdVerification(certId);
   };
 
   const resetVerification = () => {
@@ -147,7 +170,7 @@ export default function VerifyPage() {
 
       {/* Tabs Switcher */}
       {!result && (
-        <div className="flex bg-slate-200/60 p-1.5 rounded-2xl max-w-md mx-auto mb-8">
+        <div className="flex bg-slate-200/60 p-1.5 rounded-2xl max-w-lg mx-auto mb-8 gap-1">
           <button
             onClick={() => { setActiveTab("file"); setError(null); }}
             className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
@@ -157,7 +180,7 @@ export default function VerifyPage() {
             }`}
           >
             <FileUp className="h-4 w-4" />
-            Upload PDF File
+            Upload PDF
           </button>
           <button
             onClick={() => { setActiveTab("id"); setError(null); }}
@@ -169,6 +192,13 @@ export default function VerifyPage() {
           >
             <Search className="h-4 w-4" />
             Verify by ID
+          </button>
+          <button
+            onClick={() => setQrScannerOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-xl text-blue-900 bg-blue-100 hover:bg-blue-200 transition-all duration-200"
+          >
+            <QrCode className="h-4 w-4 text-blue-700" />
+            Scan QR Code
           </button>
         </div>
       )}
@@ -447,8 +477,47 @@ export default function VerifyPage() {
               Verify Another Certificate
             </button>
           </div>
+
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="px-3.5 py-2 bg-blue-50 text-blue-800 text-xs font-semibold rounded-xl border border-blue-200 hover:bg-blue-100 transition"
+            >
+              📜 View Version History
+            </button>
+            <Link
+              to={`/timeline/${result.certId}`}
+              className="px-3.5 py-2 bg-indigo-50 text-indigo-800 text-xs font-semibold rounded-xl border border-indigo-200 hover:bg-indigo-100 transition"
+            >
+              ⏳ View Lifecycle Timeline
+            </Link>
+            <button
+              onClick={() => setQrModalOpen(true)}
+              className="px-3.5 py-2 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 hover:bg-emerald-100 transition"
+            >
+              🔍 Enhanced QR Metadata
+            </button>
+          </div>
         </div>
       )}
+
+      <VersionHistoryModal certId={result?.certId} isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <QrMetadataModal
+        isOpen={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        certId={result?.certId}
+        metadata={result?.metadata}
+        onChainDetails={result?.onChainDetails}
+      />
+      <QrCodeScannerModal
+        isOpen={qrScannerOpen}
+        onClose={() => setQrScannerOpen(false)}
+        onScanSuccess={(extractedId) => {
+          setCertId(extractedId);
+          setActiveTab("id");
+          runIdVerification(extractedId);
+        }}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ const ipfs = require("../services/ipfs");
 const hash = require("../services/hash");
 const pdfGen = require("../services/pdfGenerator");
 const { authenticateToken, requireInstitution } = require("../middleware/auth");
+const { logAudit } = require("../services/auditService");
 
 const router = express.Router();
 
@@ -109,6 +110,21 @@ router.post("/certificates/issue", async (req, res) => {
         txHash
       ]
     );
+
+    // Record transaction & audit log
+    await blockchain.recordTxToDB({
+      txHash,
+      walletAddress: institutionWallet || "0xInstitution",
+      actionType: "ISSUE",
+      certId
+    }).catch(() => {});
+
+    await logAudit({
+      userRole: "institution",
+      action: "CERTIFICATE_ISSUANCE",
+      details: `Institution issued certificate ${certId} for ${student.name}`,
+      ipAddress: req.ip
+    }).catch(() => {});
 
     res.status(201).json({
       message: "Certificate generated, stored on IPFS, and secured on the blockchain.",

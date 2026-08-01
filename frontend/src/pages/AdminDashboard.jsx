@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth, API_BASE_URL } from "../context/AuthContext";
-import { Shield, RefreshCw, AlertCircle, Check, X, Landmark, ShieldCheck, ShieldAlert, Mail, FileText, Award, GraduationCap, Trash2 } from "lucide-react";
+import { Shield, RefreshCw, AlertCircle, Check, X, Landmark, ShieldCheck, ShieldAlert, Mail, FileText, Award, GraduationCap, Trash2, Clock, ExternalLink, Search, ArrowUpDown, Eye } from "lucide-react";
+import ExportReportModal from "../components/ExportReportModal";
+import RevokeCertificateModal from "../components/RevokeCertificateModal";
+import ViewCertificateModal from "../components/ViewCertificateModal";
 
 export default function AdminDashboard() {
   const { authHeaders } = useAuth();
   
   const [activeTab, setActiveTab] = useState("certificates");
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Institutions State
   const [institutions, setInstitutions] = useState([]);
@@ -18,6 +23,17 @@ export default function AdminDashboard() {
   const [loadingApps, setLoadingApps] = useState(false);
   const [appsError, setAppsError] = useState("");
   const [processingAppId, setProcessingAppId] = useState(null);
+
+  // Issued Certificates State
+  const [issuedCertificates, setIssuedCertificates] = useState([]);
+  const [loadingIssued, setLoadingIssued] = useState(false);
+  const [issuedError, setIssuedError] = useState("");
+  const [issuedSort, setIssuedSort] = useState("desc");
+  const [issuedSearch, setIssuedSearch] = useState("");
+  const [revokeCertId, setRevokeCertId] = useState(null);
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [selectedCert, setSelectedCert] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   const fetchInstitutions = async () => {
     setLoadingInst(true);
@@ -53,9 +69,27 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchIssuedCertificates = async (overrideSort = issuedSort, overrideSearch = issuedSearch) => {
+    setLoadingIssued(true);
+    setIssuedError("");
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/certificates/issued?sort=${overrideSort}&search=${encodeURIComponent(overrideSearch)}`, {
+        headers: authHeaders()
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to load issued certificates");
+      setIssuedCertificates(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setIssuedError(err.message);
+    } finally {
+      setLoadingIssued(false);
+    }
+  };
+
   useEffect(() => {
     fetchInstitutions();
     fetchApplications();
+    fetchIssuedCertificates();
   }, []);
 
   const handleApproveInst = async (id, name) => {
@@ -218,6 +252,39 @@ export default function AdminDashboard() {
           <Landmark className="h-4 w-4" />
           Institution Authorizations
         </button>
+
+        <button
+          onClick={() => { setActiveTab("issued"); fetchIssuedCertificates(); }}
+          className={`pb-4 px-4 text-sm font-bold transition-all border-b-2 flex items-center gap-2 ${
+            activeTab === "issued"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Check className="h-4 w-4 text-emerald-600" />
+          Issued Certificates ({issuedCertificates.length})
+        </button>
+
+        <div className="ml-auto flex items-center gap-2 pb-4">
+          <Link
+            to="/admin/analytics"
+            className="px-3 py-1.5 text-xs font-bold text-blue-900 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition"
+          >
+            📊 Analytics
+          </Link>
+          <Link
+            to="/admin/audit-logs"
+            className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded-xl hover:bg-slate-200 transition"
+          >
+            🛡️ Audit Logs
+          </Link>
+          <button
+            onClick={() => setExportOpen(true)}
+            className="px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition"
+          >
+            📥 Export Reports
+          </button>
+        </div>
       </div>
 
       {/* Tab: E-Certificate Approvals */}
@@ -452,6 +519,169 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
+
+      {/* Tab: Issued Certificates */}
+      {activeTab === "issued" && (
+        <div className="bg-white border border-slate-200 rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2">
+              <Check className="h-6 w-6 text-emerald-600" />
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">All Issued Certificates Database</h2>
+                <p className="text-xs text-slate-500">Real-time database records sorted by issuance date</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={issuedSearch}
+                  onChange={(e) => { setIssuedSearch(e.target.value); fetchIssuedCertificates(issuedSort, e.target.value); }}
+                  placeholder="Search candidate, roll, course..."
+                  className="w-full text-xs border border-slate-200 rounded-xl pl-9 p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  const newSort = issuedSort === "desc" ? "asc" : "desc";
+                  setIssuedSort(newSort);
+                  fetchIssuedCertificates(newSort, issuedSearch);
+                }}
+                className="px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 flex items-center gap-1.5 shrink-0"
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+                Sort: {issuedSort === "desc" ? "Newest First" : "Oldest First"}
+              </button>
+
+              <button
+                onClick={() => fetchIssuedCertificates(issuedSort, issuedSearch)}
+                className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl border border-slate-200 transition shrink-0"
+                title="Refresh Table"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {loadingIssued ? (
+            <div className="flex justify-center items-center py-16">
+              <RefreshCw className="h-10 w-10 text-brand-900 animate-spin" />
+            </div>
+          ) : issuedError ? (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <span>{issuedError}</span>
+            </div>
+          ) : issuedCertificates.length === 0 ? (
+            <div className="text-center py-20 text-slate-500">
+              <Award className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-base font-semibold">No issued certificates found</p>
+              <p className="text-xs text-slate-400 mt-1">Certificates issued by colleges or admin will display here.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-2">Certificate ID / Hash</th>
+                    <th className="py-3 px-2">Candidate Details</th>
+                    <th className="py-3 px-2">Course & Grade</th>
+                    <th className="py-3 px-2">Issuing College</th>
+                    <th className="py-3 px-2">Issue Date & Status</th>
+                    <th className="py-3 px-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm text-slate-700 divide-y divide-slate-100">
+                  {issuedCertificates.map((cert) => (
+                    <tr key={cert.cert_id} className="hover:bg-slate-50/50 transition">
+                      <td className="py-4 px-2">
+                        <Link to={`/timeline/${cert.cert_id}`} className="font-mono text-xs font-bold text-blue-600 hover:underline">
+                          {cert.cert_id.substring(0, 14)}...
+                        </Link>
+                        {cert.ipfs_cid && (
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                            IPFS: {cert.ipfs_cid.substring(0, 10)}...
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-4 px-2">
+                        <p className="font-semibold text-slate-900">{cert.student_name}</p>
+                        <p className="text-xs text-slate-500 font-mono">Roll: {cert.registration_number || "N/A"}</p>
+                      </td>
+                      <td className="py-4 px-2">
+                        <p className="font-semibold text-slate-800">{cert.course_name}</p>
+                        <p className="text-xs font-bold text-slate-600">{cert.grade}</p>
+                      </td>
+                      <td className="py-4 px-2 font-medium text-slate-600">
+                        {cert.institution_name || "JNTUGV Constituent College"}
+                      </td>
+                      <td className="py-4 px-2">
+                        <div className="text-xs text-slate-500">
+                          {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : "Issued"}
+                        </div>
+                        {cert.status === "revoked" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-red-100 text-red-800 mt-1">
+                            <ShieldAlert className="h-3 w-3" /> Revoked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 mt-1">
+                            <ShieldCheck className="h-3 w-3" /> Authentic
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-2 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => { setSelectedCert(cert); setViewModalOpen(true); }}
+                            className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-700 hover:text-white rounded-xl border border-emerald-200 transition text-xs font-semibold px-2.5 flex items-center gap-1"
+                            title="View Certificate Details"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> View Certificate
+                          </button>
+                          <Link
+                            to={`/timeline/${cert.cert_id}`}
+                            className="p-1.5 bg-blue-50 text-blue-700 hover:bg-blue-700 hover:text-white rounded-xl border border-blue-200 transition text-xs font-semibold px-2.5 flex items-center gap-1"
+                            title="View Lifecycle Timeline"
+                          >
+                            <Clock className="h-3.5 w-3.5" /> Timeline
+                          </Link>
+                          {cert.status !== "revoked" && (
+                            <button
+                              onClick={() => { setRevokeCertId(cert.cert_id); setRevokeModalOpen(true); }}
+                              className="p-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl border border-red-200 transition text-xs font-semibold px-2.5 flex items-center gap-1"
+                              title="Revoke Certificate"
+                            >
+                              <ShieldAlert className="h-3.5 w-3.5" /> Revoke
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      <ViewCertificateModal
+        cert={selectedCert}
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+      />
+
+      <RevokeCertificateModal
+        certId={revokeCertId}
+        isOpen={revokeModalOpen}
+        onClose={() => setRevokeModalOpen(false)}
+        onSuccess={() => fetchIssuedCertificates()}
+      />
+
+      <ExportReportModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
     </div>
   );
 }

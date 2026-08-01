@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth, API_BASE_URL } from "../context/AuthContext";
 import { Shield, Mail, Lock, LogIn, RefreshCw, AlertCircle, CheckCircle, KeyRound, ArrowLeft } from "lucide-react";
+import OtpLoginModal from "../components/OtpLoginModal";
 
 export default function LoginPage() {
   const [role, setRole] = useState("student"); // "student", "institution", "admin"
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   // OTP Verification States (in case they login with unverified email)
   const [showOtpScreen, setShowOtpScreen] = useState(false);
@@ -621,11 +623,27 @@ export default function LoginPage() {
                     </>
                   )}
                 </button>
+
+                <div className="relative my-4 text-center">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
+                  <span className="relative px-3 bg-white text-xs font-semibold text-slate-400 uppercase">Or</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowOtpModal(true)}
+                  className="w-full py-2.5 bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-all duration-150 flex items-center justify-center gap-2"
+                >
+                  <KeyRound className="h-4 w-4 text-blue-600" />
+                  Sign In with Email OTP
+                </button>
               </form>
             </>
           )}
         </div>
       </div>
+
+      <OtpLoginModal isOpen={showOtpModal} onClose={() => setShowOtpModal(false)} />
     </div>
   );
 }

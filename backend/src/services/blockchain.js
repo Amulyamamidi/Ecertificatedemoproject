@@ -169,12 +169,39 @@ async function getCertificate(certId) {
   }
 }
 
+const { query } = require("../config/db");
+
+async function recordTxToDB({ txHash, blockNumber, walletAddress, actionType, gasUsed, certId }) {
+  try {
+    await query(
+      `INSERT INTO blockchain_transactions (tx_hash, block_number, wallet_address, action_type, gas_used, status, cert_id)
+       VALUES ($1, $2, $3, $4, $5, 'SUCCESS', $6)
+       ON CONFLICT (tx_hash) DO NOTHING`,
+      [txHash, blockNumber || 0, walletAddress || "0x0", actionType, String(gasUsed || "21000"), certId || null]
+    );
+  } catch (err) {
+    console.warn("⚠️ Failed to record blockchain transaction to DB:", err.message);
+  }
+}
+
 module.exports = {
   authorizeIssuer,
   deauthorizeIssuer,
   isAuthorizedIssuer,
   issueCertificate,
+  issueCertificateOnChain: async (certId, certHash, ipfsCID, wallet) => {
+    const hash = await issueCertificate(certId, certHash, ipfsCID, wallet);
+    await recordTxToDB({ txHash: hash, walletAddress: wallet || "0xRelayer", actionType: "ISSUE", certId });
+    return { hash };
+  },
   revokeCertificate,
+  revokeCertificateOnChain: async (certId) => {
+    const hash = await revokeCertificate(certId);
+    await recordTxToDB({ txHash: hash, walletAddress: "0xRelayer", actionType: "REVOKE", certId });
+    return { hash };
+  },
   verifyCertificate,
-  getCertificate
+  getCertificate,
+  recordTxToDB
 };
+

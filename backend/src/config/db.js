@@ -1,5 +1,7 @@
 const dns = require("dns");
 const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
 
 if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
@@ -24,6 +26,23 @@ try {
   console.error("[DB Config] Error initializing Postgres pool:", error);
 }
 
+async function initSchema() {
+  if (!pool) return;
+  try {
+    const schemaPath = path.join(__dirname, "schema.sql");
+    if (fs.existsSync(schemaPath)) {
+      const sql = fs.readFileSync(schemaPath, "utf8");
+      await pool.query(sql);
+      console.log("[DB Config] ✅ Database schema verified and updated successfully.");
+    }
+  } catch (err) {
+    console.warn("[DB Config] ⚠️ Schema initialization notice:", err.message);
+  }
+}
+
+// Run schema initialization asynchronously
+initSchema();
+
 /**
  * Standard query function that executes against PostgreSQL.
  */
@@ -35,5 +54,6 @@ async function query(text, params = []) {
 }
 
 module.exports = {
-  query
+  query,
+  initSchema
 };

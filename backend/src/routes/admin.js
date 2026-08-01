@@ -6,6 +6,7 @@ const ipfs = require("../services/ipfs");
 const hash = require("../services/hash");
 const pdfGen = require("../services/pdfGenerator");
 const { authenticateToken, requireAdmin } = require("../middleware/auth");
+const { logAudit } = require("../services/auditService");
 
 const router = express.Router();
 
@@ -319,6 +320,21 @@ router.post("/applications/:id/approve", async (req, res) => {
       ]
     );
 
+    // Record on-chain transaction & audit log
+    await blockchain.recordTxToDB({
+      txHash,
+      walletAddress: app.institution_wallet || "0xAdmin",
+      actionType: "ISSUE",
+      certId
+    }).catch(() => {});
+
+    await logAudit({
+      userRole: "admin",
+      action: "CERTIFICATE_ISSUANCE",
+      details: `Admin issued certificate ${certId} for ${app.student_name}`,
+      ipAddress: req.ip
+    }).catch(() => {});
+
     // 8. Update Application Status to approved_by_admin
     await db.query(
       "UPDATE certificate_requests SET status = 'approved_by_admin', updated_at = NOW() WHERE id = $1",
@@ -363,6 +379,80 @@ router.post("/applications/:id/reject", async (req, res) => {
   } catch (error) {
     console.error("[Admin Route] Reject application error:", error);
     res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+/**
+ * Get all issued certificates from database sorted by date (default DESC)
+ */
+router.get("/certificates/issued", async (req, res) => {
+  try {
+    const { sort = "desc", search = "" } = req.query;
+    const sortOrder = sort.toLowerCase() === "asc" ? "ASC" : "DESC";
+
+    let searchClause = "";
+    const params = [];
+    if (search.trim()) {
+      params.push(`%${search.trim().toLowerCase()}%`);
+      searchClause = `WHERE LOWER(c.student_name) LIKE $1 OR LOWER(c.cert_id) LIKE $1 OR LOWER(c.course_name) LIKE $1 OR LOWER(s.registration_number) LIKE $1`;
+    }
+
+    // Safely check if revoked_certificates table exists
+    const tableCheck = await db.query("SELECT to_regclass('public.revoked_certificates') as exists");
+    const hasRevokedTable = Boolean(tableCheck.rows[0]?.exists);
+
+    const revocationJoin = hasRevokedTable ? "LEFT JOIN revoked_certificates r ON c.cert_id = r.cert_id" : "";
+    const revocationSelect = hasRevokedTable ? "r.reason as revocation_reason" : "NULL as revocation_reason";
+
+    const queryStr = `
+      SELECT 
+        c.cert_id, 
+        c.student_name, 
+        c.course_name, 
+        c.grade, 
+        c.cert_hash, 
+        c.ipfs_cid, 
+        c.tx_hash, 
+        c.status, 
+        c.issued_at, 
+        COALESCE(inst.name, 'JNTUGV Constituent College') as institution_name, 
+        COALESCE(s.registration_number, 'N/A') as registration_number, 
+        ${revocationSelect}
+      FROM certificates c 
+      LEFT JOIN institutions inst ON c.institution_id = inst.id 
+      LEFT JOIN students s ON c.student_id = s.id 
+      ${revocationJoin}
+      ${searchClause}
+
+      UNION ALL
+
+      SELECT 
+        cr.id::text as cert_id,
+        s.name as student_name,
+        cr.course_name,
+        cr.grade,
+        '0xPendingHash' as cert_hash,
+        'PendingIPFS' as ipfs_cid,
+        NULL as tx_hash,
+        'issued' as status,
+        cr.updated_at as issued_at,
+        COALESCE(inst.name, 'JNTUGV Constituent College') as institution_name,
+        cr.roll_number as registration_number,
+        NULL as revocation_reason
+      FROM certificate_requests cr
+      LEFT JOIN institutions inst ON cr.institution_id = inst.id
+      LEFT JOIN students s ON cr.student_id = s.id
+      WHERE cr.status IN ('approved_by_admin', 'issued')
+        AND NOT EXISTS (SELECT 1 FROM certificates c2 WHERE c2.student_id = cr.student_id AND c2.course_name = cr.course_name)
+
+      ORDER BY issued_at ${sortOrder}
+    `;
+
+    const result = await db.query(queryStr, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("[Admin Route] Get issued certificates error:", error);
+    res.status(500).json({ error: error.message || "Internal server error." });
   }
 });
 
