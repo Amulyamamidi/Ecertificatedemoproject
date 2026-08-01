@@ -6,7 +6,7 @@
 [![Database](https://img.shields.io/badge/Database-PostgreSQL_(Supabase)-emerald.svg)](https://supabase.com)
 [![Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
 
-**CertiShield** is a enterprise-grade, decentralized credential management and verification platform engineered for **JNTUGV (Jawaharlal Nehru Technological University Gurajada Vizianagaram)** and its affiliated associate colleges (e.g., MVGR, GMRIT, Lendi).
+**CertiShield** is an enterprise-grade, decentralized credential management and verification platform engineered for **JNTUGV (Jawaharlal Nehru Technological University Gurajada Vizianagaram)** and its affiliated associate colleges (e.g., MVGR, GMRIT, Lendi).
 
 The system features a **Quantum-Resistant Hybrid Security Architecture**, combining **Ethereum / Polygon Blockchain Smart Contracts** with **NIST FIPS 204 ML-DSA-65 (CRYSTALS-Dilithium)** digital signatures, **IPFS** decentralized storage, and a **Live Web Camera & Image QR Code Scanner**.
 
@@ -41,7 +41,12 @@ graph TD
 - **Upload QR Image**: Upload certificate QR code screenshots or photos to decode Certificate ID and verify on-chain.
 - **Dynamic Live Domain QR Generation**: Generated QR codes automatically adapt to your live domain (`https://certificate-verification-frontend-639g.onrender.com/verify-by-id?id=...`).
 
-### 📊 3. Core Credential Governance & 14 Enterprise Extended Modules
+### 🔑 3. Authentication & UX Security Enhancements
+- **Interactive Password Visibility Toggle**: Eye & EyeOff icon toggles across all Login, Reset Password, and Signup forms.
+- **Passwordless OTP Sign-In**: 6-digit email OTP login mode with automatic session token persistence and role-based portal routing.
+- **Resilient IPv4 Database Query Engine**: Fault-tolerant PostgreSQL connection pool with fallback query handlers preventing HTTP 500 status crashes on Render.
+
+### 📊 4. Core Credential Governance & 14 Enterprise Extended Modules
 1. **Decentralized Certificate Registry (`CertificateRegistry.sol`)**: On-chain smart contract recording certificate IDs, SHA-256 hashes, IPFS CIDs, and issuer authorization.
 2. **Dynamic PDF Generator**: Generates formal e-certificates with embedded student photos, university logos, SHA-256 hashes, and **`SCAN TO VERIFY` QR Codes**.
 3. **Security Audit Log Explorer (`/admin/audit-logs`)**: Complete compliance tracking of logins, issuances, verifications, revocations, and IP metadata.
