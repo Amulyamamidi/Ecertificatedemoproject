@@ -31,9 +31,18 @@ export const AuthProvider = ({ children }) => {
     const savedToken = localStorage.getItem("cert_shield_token");
     const savedUser = localStorage.getItem("cert_shield_user");
     
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+    if (savedToken && savedUser && savedUser !== "undefined" && savedUser !== "null") {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        if (parsedUser) {
+          setToken(savedToken);
+          setUser(parsedUser);
+        }
+      } catch (err) {
+        console.warn("[AuthContext] Invalid saved user data in localStorage, clearing auth session.");
+        localStorage.removeItem("cert_shield_token");
+        localStorage.removeItem("cert_shield_user");
+      }
     }
     setLoading(false);
   }, []);
