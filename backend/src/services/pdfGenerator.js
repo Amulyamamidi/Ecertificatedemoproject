@@ -17,7 +17,15 @@ async function generateCertificatePDF(details) {
   // Generate QR Code Buffer for verification link
   let qrBuffer = null;
   try {
-    const activeBaseUrl = (details.baseUrl || process.env.APP_BASE_URL || process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/+$/, "");
+    let activeBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL;
+    if (!activeBaseUrl || activeBaseUrl.includes("localhost") || activeBaseUrl.includes("127.0.0.1")) {
+      if (details.baseUrl && !details.baseUrl.includes("localhost") && !details.baseUrl.includes("127.0.0.1")) {
+        activeBaseUrl = details.baseUrl;
+      } else {
+        activeBaseUrl = activeBaseUrl || details.baseUrl || "https://certificate-verification-frontend-639g.onrender.com";
+      }
+    }
+    activeBaseUrl = activeBaseUrl.replace(/\/+$/, "");
     const verifyUrl = `${activeBaseUrl}/verify-by-id?id=${details.certId}`;
     qrBuffer = await QRCode.toBuffer(verifyUrl, {
       margin: 1,
