@@ -34,9 +34,10 @@ export default function InstitutionDashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to load history");
-      setCertificates(data);
+      setCertificates(Array.isArray(data) ? data : []);
     } catch (err) {
       setHistoryError(err.message);
+      setCertificates([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -52,9 +53,10 @@ export default function InstitutionDashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to load applications");
-      setApplications(data);
+      setApplications(Array.isArray(data) ? data : []);
     } catch (err) {
       setAppsError(err.message);
+      setApplications([]);
     } finally {
       setLoadingApps(false);
     }
@@ -160,7 +162,11 @@ export default function InstitutionDashboard() {
         </div>
         <div className="flex flex-col text-sm bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 font-mono text-blue-100 shrink-0">
           <span className="text-xs font-bold text-blue-200 uppercase mb-1">Issuer Wallet</span>
-          <span>{user.walletAddress.substring(0, 10)}...{user.walletAddress.substring(34)}</span>
+          <span>
+            {user?.walletAddress 
+              ? `${user.walletAddress.substring(0, 10)}...${user.walletAddress.substring(Math.max(0, user.walletAddress.length - 6))}`
+              : "Authorized Institution Account"}
+          </span>
         </div>
       </div>
 
