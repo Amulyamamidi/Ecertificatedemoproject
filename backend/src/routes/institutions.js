@@ -61,7 +61,8 @@ router.post("/certificates/issue", async (req, res) => {
         issueDate: formattedDate,
         institutionName,
         certId,
-        issuerWallet: institutionWallet
+        issuerWallet: institutionWallet,
+        baseUrl: req.headers.origin || process.env.APP_BASE_URL || process.env.FRONTEND_URL
       });
     } catch (pdfError) {
       console.error("[Institution Route] PDF Generation failed:", pdfError);

@@ -20,6 +20,10 @@ services:
         generateValue: true
       - key: ALCHEMY_AMOY_RPC_URL
         value: https://polygon-amoy.g.alchemy.com/v2/demo
+      - key: APP_BASE_URL
+        value: https://certificate-verification-frontend-639g.onrender.com
+      - key: FRONTEND_URL
+        value: https://certificate-verification-frontend-639g.onrender.com
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
