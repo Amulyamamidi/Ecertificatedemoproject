@@ -10,6 +10,33 @@ const QRCode = require("qrcode");
  * @param {object} details - { studentName, registrationNumber, courseName, grade, issueDate, institutionName, certId, certHash, studentPhoto, issuerWallet, baseUrl }
  * @returns {Promise<Buffer>} PDF file buffer
  */
+function resolveBaseUrl(details = {}) {
+  const envUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL;
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/+$/, "");
+  }
+
+  const passedUrl = details.baseUrl;
+  if (passedUrl && !passedUrl.includes("localhost") && !passedUrl.includes("127.0.0.1")) {
+    return passedUrl.replace(/\/+$/, "");
+  }
+
+  if (details.req) {
+    const req = details.req;
+    if (req.headers && req.headers.origin && !req.headers.origin.includes("localhost")) {
+      return req.headers.origin.replace(/\/+$/, "");
+    }
+    if (req.headers && req.headers.referer && !req.headers.referer.includes("localhost")) {
+      try {
+        const u = new URL(req.headers.referer);
+        return `${u.protocol}//${u.host}`.replace(/\/+$/, "");
+      } catch (e) {}
+    }
+  }
+
+  return "https://certificate-verification-frontend-639g.onrender.com";
+}
+
 async function generateCertificatePDF(details) {
   // Compute fallback document hash if not passed explicitly
   const certHash = details.certHash || ("0x" + crypto.createHash("sha256").update(`${details.certId}-${details.studentName}-${details.registrationNumber}-${details.courseName}`).digest("hex"));
@@ -17,15 +44,7 @@ async function generateCertificatePDF(details) {
   // Generate QR Code Buffer for verification link
   let qrBuffer = null;
   try {
-    let activeBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL;
-    if (!activeBaseUrl || activeBaseUrl.includes("localhost") || activeBaseUrl.includes("127.0.0.1")) {
-      if (details.baseUrl && !details.baseUrl.includes("localhost") && !details.baseUrl.includes("127.0.0.1")) {
-        activeBaseUrl = details.baseUrl;
-      } else {
-        activeBaseUrl = activeBaseUrl || details.baseUrl || "https://certificate-verification-frontend-639g.onrender.com";
-      }
-    }
-    activeBaseUrl = activeBaseUrl.replace(/\/+$/, "");
+    const activeBaseUrl = resolveBaseUrl(details);
     const verifyUrl = `${activeBaseUrl}/verify-by-id?id=${details.certId}`;
     qrBuffer = await QRCode.toBuffer(verifyUrl, {
       margin: 1,
